@@ -1,0 +1,32 @@
+import { BIBLE_VERSIONS } from '@/lib/bible'
+import { useAppStore } from '@/contexts/store'
+import { cn } from '@/lib/utils'
+import type { BibleVersion } from '@/types'
+
+export function BibleVersionPicker() {
+  const { bibleVersion, setBibleVersion } = useAppStore()
+
+  return (
+    <div>
+      <p className="text-xs font-heading font-semibold text-hope-gray/50 uppercase tracking-wider mb-2">
+        Translation
+      </p>
+      <div className="flex gap-2 flex-wrap">
+        {BIBLE_VERSIONS.map((v) => (
+          <button
+            key={v}
+            onClick={() => setBibleVersion(v as BibleVersion)}
+            className={cn(
+              'px-3 py-1.5 rounded-lg text-xs font-heading font-semibold transition-all',
+              bibleVersion === v
+                ? 'bg-hope-blue text-white shadow-sm'
+                : 'bg-white border border-gray-200 text-hope-gray hover:border-hope-blue/40'
+            )}
+          >
+            {v}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}

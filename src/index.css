@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@300;400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --gold:       #C9A84C;
+    --hope-blue:  #1E3A5F;
+    --hope-green: #2D6A4F;
+    --hope-dark:  #0F1C2E;
+    --hope-light: #F8F6F0;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply font-body bg-hope-light min-h-screen;
+    margin: 0;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer components {
+  .btn-gold {
+    @apply px-5 py-3 bg-gold-500 text-white font-heading font-semibold rounded-xl
+           hover:bg-gold-600 active:scale-95 transition-all duration-200 shadow-md;
+  }
+
+  .btn-outline {
+    @apply px-5 py-3 border-2 border-gold-500 text-gold-500 font-heading font-semibold
+           rounded-xl hover:bg-gold-50 active:scale-95 transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-5;
+  }
+
+  .watch-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs
+           font-heading font-semibold uppercase tracking-wide;
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+}
+
+@layer utilities {
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent;
+  }
+}
