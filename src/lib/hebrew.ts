@@ -1,4 +1,4 @@
-import { HDate, months } from '@hebcal/core'
+import { HDate } from '@hebcal/core'
 import type { HebrewDate } from '@/types'
 
 /**
@@ -6,28 +6,21 @@ import type { HebrewDate } from '@/types'
  */
 export function getHebrewDate(): HebrewDate {
   const hdate = new HDate()
-
-  const monthName = months[hdate.getMonth() - 1] ?? hdate.getMonthName()
-  const year = hdate.getFullYear()
-  const day = hdate.getDate()
-
-  return {
-    year,
-    monthName,
-    day,
-    formatted: `${day} ${monthName} ${year}`,
-  }
+  return buildHebrewDate(hdate)
 }
 
 /**
- * Returns the Hebrew month name for a given Gregorian date.
+ * Returns the Hebrew date for a given Gregorian date.
  */
 export function getHebrewDateFor(date: Date): HebrewDate {
   const hdate = new HDate(date)
+  return buildHebrewDate(hdate)
+}
 
-  const monthName = months[hdate.getMonth() - 1] ?? hdate.getMonthName()
+function buildHebrewDate(hdate: HDate): HebrewDate {
   const year = hdate.getFullYear()
   const day = hdate.getDate()
+  const monthName = hdate.getMonthName()
 
   return {
     year,

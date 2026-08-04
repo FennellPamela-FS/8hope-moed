@@ -11,6 +11,7 @@ import { Moed } from '@/pages/Moed'
 import { Journal } from '@/pages/Journal'
 import { Favorites } from '@/pages/Favorites'
 import { Settings } from '@/pages/Settings'
+import { Watches } from '@/pages/Watches'
 
 export default function App() {
   const { user, setUser } = useAppStore()
@@ -71,6 +72,7 @@ export default function App() {
         <Route path="/journal"   element={<Journal />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/settings"  element={<Settings />} />
+        <Route path="/watches"   element={<Watches />} />
         <Route path="*"          element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

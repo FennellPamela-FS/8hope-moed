@@ -3,16 +3,64 @@ import type { BibleVersion, BibleVerse } from '@/types'
 const API_KEY = import.meta.env.VITE_BIBLE_API_KEY
 const BASE_URL = 'https://api.scripture.api.bible/v1'
 
-// API.Bible translation IDs for supported versions
-const VERSION_IDS: Record<BibleVersion, string> = {
-  KJV:  'de4e12af7f28f599-02',
-  NIV:  '78a9f6124f344018-01',
-  NLT:  '65eec8e0b60e656b-01',
-  ESV:  '9879dbb7cfe39e4d-01',
-  NKJV: '3e7b4c6e3e7b4c6e-01', // placeholder — update with real ID
-  AMP:  'bf654c4bc3c9503f-01', // placeholder
-  MSG:  '65eec8e0b60e656b-02', // placeholder
+// ─── Known public-domain IDs (stable across accounts) ────────────────────────
+// For copyrighted versions (NKJV, AMP, MSG), IDs are resolved at runtime
+// from your account's available Bibles via resolveBibleIds().
+const KNOWN_IDS: Partial<Record<BibleVersion, string>> = {
+  KJV: 'de4e12af7f28f599-02',
+  NIV: '78a9f6124f344018-01',
+  NLT: '65eec8e0b60e656b-01',
+  ESV: '9879dbb7cfe39e4d-01',
 }
+
+// Runtime-resolved IDs (populated on first call)
+let resolvedIds: Partial<Record<BibleVersion, string>> = { ...KNOWN_IDS }
+let resolved = false
+
+// Name fragments used to match copyrighted versions in the /bibles list
+const VERSION_NAME_HINTS: Partial<Record<BibleVersion, string>> = {
+  NKJV: 'new king james',
+  AMP:  'amplified',
+  MSG:  'message',
+}
+
+/**
+ * Fetches available Bibles from the API and resolves IDs for any
+ * version not already known. Called once and cached.
+ */
+export async function resolveBibleIds(): Promise<void> {
+  if (resolved) return
+  resolved = true
+
+  const missing = (Object.keys(VERSION_NAME_HINTS) as BibleVersion[]).filter(
+    (v) => !resolvedIds[v]
+  )
+  if (missing.length === 0) return
+
+  try {
+    const res = await fetch(`${BASE_URL}/bibles?language=eng`, {
+      headers: { 'api-key': API_KEY },
+    })
+    if (!res.ok) return
+
+    const data = await res.json()
+    const bibles: Array<{ id: string; name: string }> = data.data ?? []
+
+    for (const version of missing) {
+      const hint = VERSION_NAME_HINTS[version]?.toLowerCase()
+      const match = bibles.find((b) => b.name.toLowerCase().includes(hint ?? ''))
+      if (match) resolvedIds[version] = match.id
+    }
+  } catch {
+    // Non-fatal — will fall back to KJV for unresolved versions
+  }
+}
+
+function getBibleId(version: BibleVersion): string {
+  return resolvedIds[version] ?? resolvedIds['KJV'] ?? 'de4e12af7f28f599-02'
+}
+
+// ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
  * Fetches a single Bible verse from API.Bible.
@@ -23,13 +71,13 @@ export async function fetchVerse(
   verse: number,
   version: BibleVersion = 'KJV'
 ): Promise<BibleVerse> {
-  const bibleId = VERSION_IDS[version]
+  await resolveBibleIds()
+
+  const bibleId = getBibleId(version)
   const verseId = `${book}.${chapter}.${verse}`
   const url = `${BASE_URL}/bibles/${bibleId}/verses/${verseId}?content-type=text&include-notes=false&include-titles=false`
 
-  const res = await fetch(url, {
-    headers: { 'api-key': API_KEY },
-  })
+  const res = await fetch(url, { headers: { 'api-key': API_KEY } })
 
   if (!res.ok) {
     throw new Error(`Bible API error ${res.status} for ${verseId}`)
@@ -39,7 +87,7 @@ export async function fetchVerse(
   const verseData = data.data
 
   return {
-    ref: `${verseData.reference}`,
+    ref: verseData.reference,
     book,
     chapter,
     verse,
@@ -59,20 +107,17 @@ export async function fetchVerses(
 }
 
 /**
- * Fetches the Verse of the Day from API.Bible.
+ * Fetches the Verse of the Day.
  */
 export async function fetchVerseOfTheDay(version: BibleVersion = 'KJV'): Promise<BibleVerse> {
-  const bibleId = VERSION_IDS[version]
-  const url = `${BASE_URL}/bibles/${bibleId}/verses/votd`
+  await resolveBibleIds()
 
-  const res = await fetch(url, {
+  const bibleId = getBibleId(version)
+  const res = await fetch(`${BASE_URL}/bibles/${bibleId}/verses/votd`, {
     headers: { 'api-key': API_KEY },
   })
 
-  if (!res.ok) {
-    // Fallback: return John 3:16
-    return fetchVerse('JHN', 3, 16, version)
-  }
+  if (!res.ok) return fetchVerse('JHN', 3, 16, version)
 
   const data = await res.json()
   const v = data.data
