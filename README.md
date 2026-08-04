@@ -33,3 +33,4 @@ See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rule
 # 8hope-moed
 # 8hope-moed
 # 8hope-moed
+# 8hope-moed
