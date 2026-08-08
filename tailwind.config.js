@@ -34,8 +34,8 @@ export default {
         },
       },
       fontFamily: {
-        heading: ['Montserrat', 'sans-serif'],
-        body:    ['Lato', 'sans-serif'],
+        heading: ['Manrope', 'sans-serif'],
+        body:    ['Inter', 'sans-serif'],
       },
       keyframes: {
         'fade-in': {
