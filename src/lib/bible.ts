@@ -132,7 +132,8 @@ export async function fetchVerseOfTheDay(version: BibleVersion = 'KJV'): Promise
   }
 }
 
-export const BIBLE_VERSIONS: BibleVersion[] = ['KJV', 'NIV', 'NLT', 'ESV', 'NKJV', 'AMP', 'MSG']
+// NIV and MSG hidden until API access is resolved in a future phase
+export const BIBLE_VERSIONS: BibleVersion[] = ['KJV', 'NLT', 'ESV', 'NKJV', 'AMP']
 
 // NT book by month (for Moed's third daily verse)
 export const NT_BOOK_BY_MONTH: Record<number, string> = {
