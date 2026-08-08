@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase'
 import type { JournalEntry } from '@/types'
 
 export function Journal() {
-  const { user, activeWatch, journalEntries, upsertJournalEntry } = useAppStore()
+  const { user, activeWatch, journalEntries, setJournalEntries, upsertJournalEntry } = useAppStore()
   const [content, setContent] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -16,8 +16,22 @@ export function Journal() {
   const todayEntry = journalEntries.find((e) => e.entry_date === today)
 
   useEffect(() => {
+    async function loadEntries() {
+      if (!user) return
+      const { data } = await supabase
+        .from('journal_entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('entry_date', { ascending: false })
+        .limit(30)
+      if (data) setJournalEntries(data as JournalEntry[])
+    }
+    loadEntries()
+  }, [user])
+
+  useEffect(() => {
     if (todayEntry) setContent(todayEntry.content)
-  }, [todayEntry])
+  }, [todayEntry?.id])
 
   async function handleSave() {
     if (!user || !content.trim()) return
