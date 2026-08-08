@@ -30,16 +30,19 @@
 @layer components {
   .btn-gold {
     @apply px-5 py-3 bg-gold-500 text-white font-heading font-semibold rounded-xl
-           hover:bg-gold-600 active:scale-95 transition-all duration-200 shadow-md;
+           hover:bg-gold-600 active:scale-[0.98] transition-all duration-200;
+    box-shadow: 0 4px 16px rgba(201, 168, 76, 0.25);
   }
 
   .btn-outline {
-    @apply px-5 py-3 border-2 border-gold-500 text-gold-500 font-heading font-semibold
-           rounded-xl hover:bg-gold-50 active:scale-95 transition-all duration-200;
+    @apply px-5 py-3 border border-gold-500 text-gold-600 font-heading font-semibold
+           rounded-xl hover:bg-gold-50 active:scale-[0.98] transition-all duration-200;
   }
 
   .card {
-    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-5;
+    @apply bg-white rounded-2xl p-5;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.02);
   }
 
   .watch-badge {

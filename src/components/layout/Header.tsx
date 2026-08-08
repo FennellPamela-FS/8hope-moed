@@ -15,6 +15,7 @@ export function Header({ title }: HeaderProps) {
     <header className={cn(
       'sticky top-0 z-40 bg-hope-blue text-white px-4 py-3',
       'flex items-center justify-between',
+      'border-b border-gold-500/15',
     )}>
       {/* Left: back button or logo */}
       <div className="w-10">
