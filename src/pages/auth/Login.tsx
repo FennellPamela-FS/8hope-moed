@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Mail, Loader2 } from 'lucide-react'
+import { Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react'
 
 export function Login() {
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -13,15 +14,10 @@ export function Login() {
     setLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/` },
-    })
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      setError(error.message)
-    } else {
-      setSent(true)
+      setError('Invalid email or password.')
     }
 
     setLoading(false)
@@ -35,23 +31,15 @@ export function Login() {
         <p className="text-white/60 font-body text-sm">Find Your Divine Time to Pray</p>
       </div>
 
-      {sent ? (
-        <div className="card max-w-sm w-full text-center animate-fade-in">
-          <Mail className="w-12 h-12 text-gold-500 mx-auto mb-4" />
-          <h2 className="font-heading text-xl font-semibold text-hope-blue mb-2">Check your email</h2>
-          <p className="text-gray-500 text-sm">
-            We sent a magic link to <strong>{email}</strong>.
-            Tap it to sign in — no password needed.
-          </p>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="card max-w-sm w-full animate-slide-up">
-          <h2 className="font-heading text-xl font-semibold text-hope-blue mb-1">Sign In</h2>
-          <p className="text-gray-500 text-sm mb-6">We'll send you a magic link to get started.</p>
+      <form onSubmit={handleSubmit} className="card max-w-sm w-full animate-slide-up">
+        <h2 className="font-heading text-xl font-semibold text-hope-blue mb-1">Sign In</h2>
+        <p className="text-gray-500 text-sm mb-6">Enter your email and password to continue.</p>
 
-          <label className="block mb-1 text-sm font-medium text-gray-700" htmlFor="email">
-            Email address
-          </label>
+        <label className="block mb-1 text-sm font-medium text-gray-700" htmlFor="email">
+          Email address
+        </label>
+        <div className="relative mb-4">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             id="email"
             type="email"
@@ -59,24 +47,48 @@ export function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm
-                       focus:outline-none focus:ring-2 focus:ring-gold-500 mb-4"
+            className="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-3 text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gold-500"
           />
+        </div>
 
-          {error && (
-            <p className="text-red-500 text-sm mb-3">{error}</p>
-          )}
-
+        <label className="block mb-1 text-sm font-medium text-gray-700" htmlFor="password">
+          Password
+        </label>
+        <div className="relative mb-6">
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            id="password"
+            type={showPassword ? 'text' : 'password'}
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            className="w-full border border-gray-300 rounded-xl pl-10 pr-10 py-3 text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gold-500"
+          />
           <button
-            type="submit"
-            disabled={loading}
-            className="btn-gold w-full flex items-center justify-center gap-2"
+            type="button"
+            onClick={() => setShowPassword(v => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-            Send Magic Link
+            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
-        </form>
-      )}
+        </div>
+
+        {error && (
+          <p className="text-red-500 text-sm mb-4">{error}</p>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="btn-gold w-full flex items-center justify-center gap-2"
+        >
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+          Sign In
+        </button>
+      </form>
     </div>
   )
 }

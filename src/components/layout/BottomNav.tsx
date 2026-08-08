@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom'
-import { Home, BookOpen, BookMarked, PenLine, Settings } from 'lucide-react'
+import { Home, BookOpen, BookMarked, PenLine, Settings, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { to: '/',          icon: Home,       label: 'Home'      },
   { to: '/moed',      icon: BookOpen,   label: 'Moed'      },
+  { to: '/watches',   icon: Clock,      label: 'Watches'   },
   { to: '/journal',   icon: PenLine,    label: 'Journal'   },
   { to: '/favorites', icon: BookMarked, label: 'Saved'     },
   { to: '/settings',  icon: Settings,   label: 'Settings'  },

@@ -21,7 +21,7 @@ export default function App() {
     // Check existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        await loadProfile(session.user.id)
+        await loadProfile(session.user.id, session.user.email ?? '')
       }
       setLoading(false)
     })
@@ -29,7 +29,7 @@ export default function App() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        await loadProfile(session.user.id)
+        await loadProfile(session.user.id, session.user.email ?? '')
       }
       if (event === 'SIGNED_OUT') {
         setUser(null)
@@ -39,12 +39,22 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [setUser])
 
-  async function loadProfile(userId: string) {
-    const { data } = await supabase
+  async function loadProfile(userId: string, email: string) {
+    let { data } = await supabase
       .from('user_profiles')
       .select('*')
       .eq('id', userId)
       .single()
+
+    // First sign-in: create profile so onboarding can run
+    if (!data) {
+      const { data: created } = await supabase
+        .from('user_profiles')
+        .insert({ id: userId, email, onboarding_complete: false })
+        .select()
+        .single()
+      data = created
+    }
 
     if (data) setUser(data as UserProfile)
   }
@@ -60,21 +70,23 @@ export default function App() {
     )
   }
 
-  if (!user) return <Login />
-
-  if (!user.onboarding_complete) return <Onboarding />
-
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/"          element={<Dashboard />} />
-        <Route path="/moed"      element={<Moed />} />
-        <Route path="/journal"   element={<Journal />} />
-        <Route path="/favorites" element={<Favorites />} />
-        <Route path="/settings"  element={<Settings />} />
-        <Route path="/watches"   element={<Watches />} />
-        <Route path="*"          element={<Navigate to="/" replace />} />
-      </Routes>
+      {!user ? (
+        <Login />
+      ) : !user.onboarding_complete ? (
+        <Onboarding />
+      ) : (
+        <Routes>
+          <Route path="/"          element={<Dashboard />} />
+          <Route path="/moed"      element={<Moed />} />
+          <Route path="/journal"   element={<Journal />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/settings"  element={<Settings />} />
+          <Route path="/watches"   element={<Watches />} />
+          <Route path="*"          element={<Navigate to="/" replace />} />
+        </Routes>
+      )}
     </BrowserRouter>
   )
 }

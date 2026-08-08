@@ -12,7 +12,7 @@ export async function studyVerse(
   verseText: string,
   today: string  // Hebrew date string, e.g. "3 Tammuz 5786"
 ): Promise<VerseStudy> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
   const prompt = `
 You are a biblical scholar specializing in Hebrew and Greek scripture study for spiritual devotion.

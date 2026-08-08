@@ -16,17 +16,21 @@ export function VerseStudyModal({ verse, hebrewDate, onClose }: VerseStudyModalP
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    let cancelled = false
+
     async function load() {
       try {
         const result = await studyVerse(verse.ref, verse.text, hebrewDate)
-        setStudy(result)
+        if (!cancelled) setStudy(result)
       } catch {
-        setError('Unable to load the study. Please try again.')
+        if (!cancelled) setError('Unable to load the study. Please try again.')
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
     load()
+
+    return () => { cancelled = true }
   }, [verse, hebrewDate])
 
   return (
