@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useAppStore } from '@/contexts/store'
 import type { UserProfile } from '@/types'
 
+import { Landing } from '@/pages/Landing'
 import { Login } from '@/pages/auth/Login'
 import { Onboarding } from '@/pages/onboarding/Onboarding'
 import { Dashboard } from '@/pages/Dashboard'
@@ -16,12 +17,14 @@ import { Watches } from '@/pages/Watches'
 export default function App() {
   const { user, setUser } = useAppStore()
   const [loading, setLoading] = useState(true)
+  const [showLanding, setShowLanding] = useState(true)
 
   useEffect(() => {
     // Check existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         await loadProfile(session.user.id, session.user.email ?? '')
+        setShowLanding(false) // skip landing if already logged in
       }
       setLoading(false)
     })
@@ -72,7 +75,9 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      {!user ? (
+      {!user && showLanding ? (
+        <Landing onEnter={() => setShowLanding(false)} />
+      ) : !user ? (
         <Login />
       ) : !user.onboarding_complete ? (
         <Onboarding />
