@@ -12,7 +12,7 @@ export async function studyVerse(
   verseText: string,
   today: string  // Hebrew date string, e.g. "3 Tammuz 5786"
 ): Promise<VerseStudy> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
   const prompt = `
 You are a biblical scholar specializing in Hebrew and Greek scripture study for spiritual devotion.
@@ -34,7 +34,9 @@ Provide a deep spiritual study in this exact JSON format (no markdown, pure JSON
 `
 
   const result = await model.generateContent(prompt)
-  const text = result.response.text().trim()
+  const raw = result.response.text().trim()
+  // Strip markdown code fences if present
+  const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
 
   const parsed = JSON.parse(text) as Omit<VerseStudy, 'verse_ref' | 'verse_text'>
 
