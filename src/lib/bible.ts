@@ -150,3 +150,53 @@ export const NT_BOOK_BY_MONTH: Record<number, string> = {
   11: 'PHP', // November → Philippians
   12: 'COL', // December → Colossians
 }
+
+// ─── Safe M:D fallback (used only if the verse_map table can't be reached) ───
+// Mirrors supabase/functions/seed-verse-map's capping so an out-of-range
+// day-of-month (or, for Gal/Eph/Php/Col, an out-of-range month-as-chapter)
+// never produces a reference that doesn't exist, e.g. Psalm 8:12.
+
+const PSALM_MAX_BY_MONTH: Record<number, number> = {
+  1: 6, 2: 12, 3: 8, 4: 8, 5: 12, 6: 10, 7: 17, 8: 9, 9: 20, 10: 18, 11: 7, 12: 8,
+}
+
+const PROVERBS_MAX_BY_MONTH: Record<number, number> = {
+  1: 33, 2: 22, 3: 35, 4: 27, 5: 23, 6: 35, 7: 27, 8: 36, 9: 18, 10: 32, 11: 31, 12: 28,
+}
+
+// Chapter is normally `month`, but Gal/Eph have only 6 chapters and
+// Php/Col have only 4 — capped here so Sep–Dec never point past the book's end.
+const NT_MAX_BY_MONTH: Record<number, { chapter: number; verse: number }> = {
+  1:  { chapter: 1, verse: 25 }, // Matthew 1
+  2:  { chapter: 2, verse: 28 }, // Mark 2
+  3:  { chapter: 3, verse: 38 }, // Luke 3
+  4:  { chapter: 4, verse: 54 }, // John 4
+  5:  { chapter: 5, verse: 42 }, // Acts 5
+  6:  { chapter: 6, verse: 23 }, // Romans 6
+  7:  { chapter: 7, verse: 40 }, // 1 Corinthians 7
+  8:  { chapter: 8, verse: 24 }, // 2 Corinthians 8
+  9:  { chapter: 6, verse: 18 }, // Galatians 6 (capped from month 9)
+  10: { chapter: 6, verse: 24 }, // Ephesians 6 (capped from month 10)
+  11: { chapter: 4, verse: 23 }, // Philippians 4 (capped from month 11)
+  12: { chapter: 4, verse: 18 }, // Colossians 4 (capped from month 12)
+}
+
+function cap(value: number, max: number): number {
+  return Math.min(value, max)
+}
+
+/**
+ * Safe fallback refs for a given calendar month/day, used only when the
+ * verse_map table can't be read. Always returns valid, existing references.
+ */
+export function getSafeDailyRefs(month: number, day: number) {
+  const psalmMax = PSALM_MAX_BY_MONTH[month] ?? 8
+  const proverbMax = PROVERBS_MAX_BY_MONTH[month] ?? 18
+  const nt = NT_MAX_BY_MONTH[month] ?? { chapter: 1, verse: 20 }
+
+  return [
+    { book: 'PSA', chapter: month, verse: cap(day, psalmMax) },
+    { book: 'PRO', chapter: month, verse: cap(day, proverbMax) },
+    { book: NT_BOOK_BY_MONTH[month] ?? 'JHN', chapter: nt.chapter, verse: cap(day, nt.verse) },
+  ]
+}

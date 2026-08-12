@@ -5,9 +5,8 @@ import { VerseCard } from '@/components/meditation/VerseCard'
 import { VerseStudyModal } from '@/components/meditation/VerseStudyModal'
 import { BibleVersionPicker } from '@/components/meditation/BibleVersionPicker'
 import { useAppStore } from '@/contexts/store'
-import { fetchVerses } from '@/lib/bible'
+import { fetchVerses, getSafeDailyRefs } from '@/lib/bible'
 import { getHebrewDate } from '@/lib/hebrew'
-import { NT_BOOK_BY_MONTH } from '@/lib/bible'
 import { supabase } from '@/lib/supabase'
 import type { BibleVerse, VerseRef } from '@/types'
 import { Loader2 } from 'lucide-react'
@@ -48,13 +47,8 @@ export function Moed() {
         { book: mapEntry.book_3, chapter: mapEntry.chapter_3, verse: mapEntry.verse_3 },
       ]
     } else {
-      // Fallback: M:D pattern (month=chapter, day=verse)
-      const ntBook = NT_BOOK_BY_MONTH[month] ?? 'JHN'
-      refs = [
-        { book: 'PSA', chapter: month, verse: day },
-        { book: 'PRO', chapter: month, verse: day },
-        { book: ntBook, chapter: month, verse: day },
-      ]
+      // Fallback: M:D pattern, capped to each chapter's real verse count
+      refs = getSafeDailyRefs(month, day)
     }
 
     try {
