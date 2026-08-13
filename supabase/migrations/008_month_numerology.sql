@@ -2,9 +2,7 @@
 -- Curated (NOT AI-generated) prophetic/biblical numerology copy per
 -- Gregorian month number. Doctrinal content — hand-authored, not left to
 -- an LLM to invent per generation. Static, 12 rows, never changes by year.
--- NOTE: this is a first draft (standard biblical-numerology teaching, the
--- tradition E.W. Bullinger's "Number in Scripture" codified). Flagged for
--- Dr. Anita's review before being treated as final/authoritative copy.
+-- Reviewed and approved by Dr. Anita (2026-08-13).
 
 create table if not exists month_numerology (
   month       int primary key check (month between 1 and 12),
@@ -15,8 +13,8 @@ create table if not exists month_numerology (
 comment on table month_numerology is
   'Curated (not AI-generated) prophetic/biblical numerology per Gregorian '
   'month. Doctrinal content — hand-authored, not left to an LLM to invent '
-  'per generation. 12 rows, never changes by year. Draft copy pending '
-  'Dr. Anita''s review.';
+  'per generation. 12 rows, never changes by year. Reviewed and approved '
+  'by Dr. Anita (2026-08-13).';
 
 alter table month_numerology enable row level security;
 -- Deny-all, same rationale as moed_daily_content: only the daily-verses

@@ -1,4 +1,4 @@
-import type { BibleVersion, BibleVerse } from '@/types'
+import type { BibleVersion, BibleVerse, Language } from '@/types'
 
 const API_KEY = import.meta.env.VITE_BIBLE_API_KEY
 const BASE_URL = 'https://api.scripture.api.bible/v1'
@@ -8,13 +8,18 @@ const BASE_URL = 'https://api.scripture.api.bible/v1'
 // For licensed versions (MSG, NASB, AMP), IDs are resolved at runtime from
 // your account's currently-selected 3 via resolveBibleIds() — which 3 are
 // available depends on your api.bible dashboard plan selection and can
-// change, so these aren't hardcoded.
+// change, so these aren't hardcoded. Spanish versions are all PD/CC, same
+// treatment as their English counterparts.
 const KNOWN_IDS: Partial<Record<BibleVersion, string>> = {
   KJV: 'de4e12af7f28f599-02',
   ASV: '06125adad2d5898a-01',
   WEB: '9879dbb7cfe39e4d-01',
   LSV: '01b29f4b342acc35-01',
   FBV: '65eec8e0b60e656b-01',
+  RVR09: '592420522e16049f-01',
+  PDD: '48acedcf8595c754-01',
+  SBS: 'b32b9d1b64b4ef29-01',
+  VBL: '482ddd53705278cc-02',
 }
 
 // Runtime-resolved IDs (populated on first call)
@@ -79,8 +84,31 @@ async function canFetchContent(bibleId: string): Promise<boolean> {
   }
 }
 
+export const BIBLE_VERSIONS_BY_LANGUAGE: Record<Language, BibleVersion[]> = {
+  en: ['KJV', 'ASV', 'WEB', 'LSV', 'FBV', 'MSG', 'NASB', 'AMP'],
+  es: ['RVR09', 'PDD', 'SBS', 'VBL'],
+}
+
+export const DEFAULT_VERSION_BY_LANGUAGE: Record<Language, BibleVersion> = {
+  en: 'KJV',
+  es: 'RVR09',
+}
+
+export const LANGUAGES: Language[] = ['en', 'es']
+export const LANGUAGE_LABELS: Record<Language, string> = { en: 'English', es: 'Español' }
+
+function languageOf(version: BibleVersion): Language {
+  return BIBLE_VERSIONS_BY_LANGUAGE.es.includes(version) ? 'es' : 'en'
+}
+
 function getBibleId(version: BibleVersion): string {
-  return resolvedIds[version] ?? resolvedIds['KJV'] ?? 'de4e12af7f28f599-02'
+  if (resolvedIds[version]) return resolvedIds[version]!
+  // Fall back to this VERSION's own language default (KJV for English,
+  // RVR09 for Spanish) — never hardcode KJV regardless of language, or a
+  // Spanish reader whose version failed to resolve would silently see
+  // English text with no indication anything went wrong.
+  const fallbackVersion = DEFAULT_VERSION_BY_LANGUAGE[languageOf(version)]
+  return resolvedIds[fallbackVersion] ?? 'de4e12af7f28f599-02'
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -155,7 +183,6 @@ export async function fetchVerseOfTheDay(version: BibleVersion = 'KJV'): Promise
   }
 }
 
-export const BIBLE_VERSIONS: BibleVersion[] = ['KJV', 'ASV', 'WEB', 'LSV', 'FBV', 'MSG', 'NASB', 'AMP']
 
 // NT book by month (for Moed's third daily verse)
 export const NT_BOOK_BY_MONTH: Record<number, string> = {

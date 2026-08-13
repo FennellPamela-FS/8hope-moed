@@ -3,13 +3,14 @@ import { BibleVersionPicker } from '@/components/meditation/BibleVersionPicker'
 import { useAppStore } from '@/contexts/store'
 import { supabase } from '@/lib/supabase'
 import { PRAYER_WATCHES } from '@/lib/watches'
+import { LANGUAGES, LANGUAGE_LABELS } from '@/lib/bible'
 import { cn } from '@/lib/utils'
 import { LogOut, Bell } from 'lucide-react'
 import type { WatchName } from '@/types'
 import { motion } from 'framer-motion'
 
 export function Settings() {
-  const { user, setUser } = useAppStore()
+  const { user, setUser, language, setLanguage } = useAppStore()
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -41,6 +42,28 @@ export function Settings() {
             <p className="text-hope-gray/50 text-sm">{user.email}</p>
           </motion.div>
         )}
+
+        {/* Language */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="card">
+          <h3 className="font-heading font-semibold text-hope-blue mb-1">Language</h3>
+          <p className="text-hope-gray/50 text-xs mb-3">Bible verses and devotional content — menus stay in English</p>
+          <div className="flex gap-2">
+            {LANGUAGES.map((lang) => (
+              <button
+                key={lang}
+                onClick={() => setLanguage(lang)}
+                className={cn(
+                  'flex-1 px-3 py-2.5 rounded-xl text-sm font-heading font-semibold transition-all',
+                  language === lang
+                    ? 'bg-hope-blue text-white shadow-sm'
+                    : 'bg-gray-50 text-hope-gray hover:bg-gray-100'
+                )}
+              >
+                {LANGUAGE_LABELS[lang]}
+              </button>
+            ))}
+          </div>
+        </motion.div>
 
         {/* Bible version */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="card">

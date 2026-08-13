@@ -10,7 +10,9 @@ import type {
   HebrewDate,
   WatchName,
   MoedDailyContent,
+  Language,
 } from '@/types'
+import { DEFAULT_VERSION_BY_LANGUAGE } from '@/lib/bible'
 
 // ─── App Store ───────────────────────────────────────────────────────────────
 
@@ -30,6 +32,13 @@ interface AppState {
   // Bible version preference (persisted)
   bibleVersion: BibleVersion
   setBibleVersion: (version: BibleVersion) => void
+
+  // Content language preference (persisted) — Bible text + Moed devotional
+  // content only, does not affect app UI chrome. Switching language resets
+  // bibleVersion to that language's default in one atomic update, so the
+  // two never briefly disagree.
+  language: Language
+  setLanguage: (lang: Language) => void
 
   // Today's 3 daily verses
   dailyVerses: BibleVerse[]
@@ -80,6 +89,10 @@ export const useAppStore = create<AppState>()(
       bibleVersion: 'KJV',
       setBibleVersion: (version) => set({ bibleVersion: version }),
 
+      // Language
+      language: 'en',
+      setLanguage: (lang) => set({ language: lang, bibleVersion: DEFAULT_VERSION_BY_LANGUAGE[lang] }),
+
       // Daily verses
       dailyVerses: [],
       setDailyVerses: (verses) => set({ dailyVerses: verses }),
@@ -120,6 +133,7 @@ export const useAppStore = create<AppState>()(
       name: '8hope-storage',
       partialize: (state) => ({
         bibleVersion: state.bibleVersion,
+        language: state.language,
         favorites: state.favorites,
       }),
     }

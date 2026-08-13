@@ -12,7 +12,7 @@ import type { MoedDailyContent } from '@/types'
 import { Loader2 } from 'lucide-react'
 
 export function Moed() {
-  const { bibleVersion, hebrewDate, setDailyVerses, dailyVerses, moedContent, setMoedContent } = useAppStore()
+  const { bibleVersion, language, hebrewDate, setDailyVerses, dailyVerses, moedContent, setMoedContent } = useAppStore()
   const [loading, setLoading] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [showStudy, setShowStudy] = useState(false)
@@ -22,44 +22,82 @@ export function Moed() {
   const month = today.getMonth() + 1
   const day = today.getDate()
 
+  // Fetches the day's Moed content (numerology + 3 verse coordinates +
+  // devotional commentary) in the current language, then the verse text in
+  // the current version. Only re-runs when `language` changes — content
+  // doesn't depend on `bibleVersion`, so switching translations shouldn't
+  // re-invoke the edge function.
   useEffect(() => {
-    loadVerses()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bibleVersion])
+    let cancelled = false
 
-  async function loadVerses() {
-    setLoading(true)
-
-    try {
-      const { data, error } = await supabase.functions.invoke<MoedDailyContent>('daily-verses', {
-        body: { month, day },
-      })
-      if (error || !data || data.verses?.length !== 3) throw error ?? new Error('bad payload')
-
-      setMoedContent(data)
-      const refs = data.verses.map((v) => ({ book: v.book_code, chapter: v.chapter, verse: v.verse }))
-      setDailyVerses(await fetchVerses(refs, bibleVersion))
-    } catch {
-      // Last-resort fallback for a genuine network/outage failure — no
-      // attempt to replicate the AI-driven variety client-side.
-      setMoedContent(null)
-      const refs = getSafeDailyRefs(month, day)
+    async function run() {
+      setLoading(true)
       try {
-        setDailyVerses(await fetchVerses(refs, bibleVersion))
+        const { data, error } = await supabase.functions.invoke<MoedDailyContent>('daily-verses', {
+          body: { month, day, language },
+        })
+        if (error || !data || data.verses?.length !== 3) throw error ?? new Error('bad payload')
+        if (cancelled) return
+
+        setMoedContent(data)
+        const refs = data.verses.map((v) => ({ book: v.book_code, chapter: v.chapter, verse: v.verse }))
+        const verses = await fetchVerses(refs, bibleVersion)
+        if (!cancelled) setDailyVerses(verses)
       } catch {
-        setDailyVerses(refs.map((r) => ({
-          ref: `${r.book} ${r.chapter}:${r.verse}`,
-          book: r.book,
-          chapter: r.chapter,
-          verse: r.verse,
-          text: 'Unable to load verse. Please check your connection.',
-          version: bibleVersion,
-        })))
+        if (cancelled) return
+        // Last-resort fallback for a genuine network/outage failure — no
+        // attempt to replicate the AI-driven variety client-side.
+        setMoedContent(null)
+        const refs = getSafeDailyRefs(month, day)
+        try {
+          const verses = await fetchVerses(refs, bibleVersion)
+          if (!cancelled) setDailyVerses(verses)
+        } catch {
+          if (!cancelled) {
+            setDailyVerses(refs.map((r) => ({
+              ref: `${r.book} ${r.chapter}:${r.verse}`,
+              book: r.book,
+              chapter: r.chapter,
+              verse: r.verse,
+              text: 'Unable to load verse. Please check your connection.',
+              version: bibleVersion,
+            })))
+          }
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
       }
     }
 
-    setLoading(false)
-  }
+    run()
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language])
+
+  // Re-fetches only the verse text (not devotional content) when the user
+  // switches translations within the same language — no edge-function
+  // round trip needed, the 3 coordinates are already known. Guarded so it
+  // doesn't also fire on first mount before moedContent exists (the
+  // language-effect above already handles that initial load).
+  useEffect(() => {
+    if (!moedContent) return
+    let cancelled = false
+
+    async function run() {
+      const refs = moedContent!.verses.map((v) => ({ book: v.book_code, chapter: v.chapter, verse: v.verse }))
+      try {
+        const verses = await fetchVerses(refs, bibleVersion)
+        if (!cancelled) setDailyVerses(verses)
+      } catch {
+        // Leave the previously-loaded verses in place rather than clearing
+        // a working page over a transient re-fetch failure.
+      }
+    }
+
+    run()
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bibleVersion])
 
   function openStudy(index: number) {
     setSelectedIndex(index)

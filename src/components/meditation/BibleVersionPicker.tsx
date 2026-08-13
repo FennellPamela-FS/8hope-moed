@@ -1,10 +1,11 @@
-import { BIBLE_VERSIONS } from '@/lib/bible'
+import { BIBLE_VERSIONS_BY_LANGUAGE } from '@/lib/bible'
 import { useAppStore } from '@/contexts/store'
 import { cn } from '@/lib/utils'
 import type { BibleVersion } from '@/types'
 
 export function BibleVersionPicker() {
-  const { bibleVersion, setBibleVersion } = useAppStore()
+  const { bibleVersion, setBibleVersion, language } = useAppStore()
+  const versions = BIBLE_VERSIONS_BY_LANGUAGE[language]
 
   return (
     <div>
@@ -12,7 +13,7 @@ export function BibleVersionPicker() {
         Translation
       </p>
       <div className="flex gap-2 flex-wrap">
-        {BIBLE_VERSIONS.map((v) => (
+        {versions.map((v) => (
           <button
             key={v}
             onClick={() => setBibleVersion(v as BibleVersion)}

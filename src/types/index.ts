@@ -46,14 +46,26 @@ export interface MoedVerseOption {
 export interface MoedDailyContent {
   month: number
   day: number
+  language: Language
   month_numerology: { theme: string; explanation: string }
   verses: MoedVerseOption[]   // exactly 3
   source: 'cache' | 'generated'
 }
 
+// ─── Language ────────────────────────────────────────────────────────────────
+// Content-only: which language Bible verse text and Moed devotional content
+// (word study, calendar connection, prayer prompt, month numerology) render
+// in. Does NOT affect the app's own UI chrome (button labels, headers, nav),
+// which stays English regardless — a deliberate, smaller scope than full
+// interface localization.
+
+export type Language = 'en' | 'es'
+
 // ─── Bible ───────────────────────────────────────────────────────────────────
 
-export type BibleVersion = 'KJV' | 'ASV' | 'WEB' | 'LSV' | 'FBV' | 'MSG' | 'NASB' | 'AMP'
+export type BibleVersion =
+  | 'KJV' | 'ASV' | 'WEB' | 'LSV' | 'FBV' | 'MSG' | 'NASB' | 'AMP'  // en
+  | 'RVR09' | 'PDD' | 'SBS' | 'VBL'                                 // es
 
 export interface BibleVerse {
   ref: string            // e.g. "Psalm 7:28"
