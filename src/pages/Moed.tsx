@@ -8,13 +8,13 @@ import { useAppStore } from '@/contexts/store'
 import { fetchVerses, getSafeDailyRefs } from '@/lib/bible'
 import { getHebrewDate } from '@/lib/hebrew'
 import { supabase } from '@/lib/supabase'
-import type { BibleVerse, VerseRef } from '@/types'
+import type { MoedDailyContent } from '@/types'
 import { Loader2 } from 'lucide-react'
 
 export function Moed() {
-  const { bibleVersion, hebrewDate, setDailyVerses, dailyVerses } = useAppStore()
+  const { bibleVersion, hebrewDate, setDailyVerses, dailyVerses, moedContent, setMoedContent } = useAppStore()
   const [loading, setLoading] = useState(false)
-  const [selectedVerse, setSelectedVerse] = useState<BibleVerse | null>(null)
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [showStudy, setShowStudy] = useState(false)
 
   const hdate = hebrewDate ?? getHebrewDate()
@@ -30,47 +30,39 @@ export function Moed() {
   async function loadVerses() {
     setLoading(true)
 
-    // Try to fetch verse refs from Supabase verse_map first
-    const { data: mapEntry } = await supabase
-      .from('verse_map')
-      .select('*')
-      .eq('month', month)
-      .eq('day', day)
-      .single()
-
-    let refs: VerseRef[]
-
-    if (mapEntry) {
-      refs = [
-        { book: mapEntry.book_1, chapter: mapEntry.chapter_1, verse: mapEntry.verse_1 },
-        { book: mapEntry.book_2, chapter: mapEntry.chapter_2, verse: mapEntry.verse_2 },
-        { book: mapEntry.book_3, chapter: mapEntry.chapter_3, verse: mapEntry.verse_3 },
-      ]
-    } else {
-      // Fallback: M:D pattern, capped to each chapter's real verse count
-      refs = getSafeDailyRefs(month, day)
-    }
-
     try {
-      const verses = await fetchVerses(refs, bibleVersion)
-      setDailyVerses(verses)
+      const { data, error } = await supabase.functions.invoke<MoedDailyContent>('daily-verses', {
+        body: { month, day },
+      })
+      if (error || !data || data.verses?.length !== 3) throw error ?? new Error('bad payload')
+
+      setMoedContent(data)
+      const refs = data.verses.map((v) => ({ book: v.book_code, chapter: v.chapter, verse: v.verse }))
+      setDailyVerses(await fetchVerses(refs, bibleVersion))
     } catch {
-      // If API fails, show refs without text
-      setDailyVerses(refs.map((r) => ({
-        ref: `${r.book} ${r.chapter}:${r.verse}`,
-        book: r.book,
-        chapter: r.chapter,
-        verse: r.verse,
-        text: 'Unable to load verse. Please check your connection.',
-        version: bibleVersion,
-      })))
+      // Last-resort fallback for a genuine network/outage failure — no
+      // attempt to replicate the AI-driven variety client-side.
+      setMoedContent(null)
+      const refs = getSafeDailyRefs(month, day)
+      try {
+        setDailyVerses(await fetchVerses(refs, bibleVersion))
+      } catch {
+        setDailyVerses(refs.map((r) => ({
+          ref: `${r.book} ${r.chapter}:${r.verse}`,
+          book: r.book,
+          chapter: r.chapter,
+          verse: r.verse,
+          text: 'Unable to load verse. Please check your connection.',
+          version: bibleVersion,
+        })))
+      }
     }
 
     setLoading(false)
   }
 
-  function openStudy(verse: BibleVerse) {
-    setSelectedVerse(verse)
+  function openStudy(index: number) {
+    setSelectedIndex(index)
     setShowStudy(true)
   }
 
@@ -89,8 +81,25 @@ export function Moed() {
           </p>
         </motion.div>
 
+        {/* Month numerology */}
+        {!loading && moedContent?.month_numerology && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="card bg-gold-500/5 border-gold-500/20 text-center"
+          >
+            <p className="uppercase text-[10px] font-heading font-semibold text-gold-600 tracking-widest mb-1">
+              The Numerology of Month {month} · {moedContent.month_numerology.theme}
+            </p>
+            <p className="text-hope-gray/70 text-xs font-body leading-relaxed">
+              {moedContent.month_numerology.explanation}
+            </p>
+          </motion.div>
+        )}
+
         {/* Bible version picker */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
           <BibleVersionPicker />
         </motion.div>
 
@@ -106,12 +115,13 @@ export function Moed() {
                 key={verse.ref}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 + i * 0.1 }}
+                transition={{ delay: 0.2 + i * 0.1 }}
               >
                 <VerseCard
                   verse={verse}
                   verseNumber={i + 1}
-                  onStudy={() => openStudy(verse)}
+                  study={moedContent?.verses[i]}
+                  onStudy={() => openStudy(i)}
                 />
               </motion.div>
             ))}
@@ -135,10 +145,10 @@ export function Moed() {
       </div>
 
       {/* AI Study Modal */}
-      {showStudy && selectedVerse && (
+      {showStudy && selectedIndex !== null && dailyVerses[selectedIndex] && (
         <VerseStudyModal
-          verse={selectedVerse}
-          hebrewDate={hdate.formatted}
+          verse={dailyVerses[selectedIndex]}
+          study={moedContent?.verses[selectedIndex] ?? null}
           onClose={() => setShowStudy(false)}
         />
       )}

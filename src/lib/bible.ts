@@ -151,10 +151,13 @@ export const NT_BOOK_BY_MONTH: Record<number, string> = {
   12: 'COL', // December → Colossians
 }
 
-// ─── Safe M:D fallback (used only if the verse_map table can't be reached) ───
-// Mirrors supabase/functions/seed-verse-map's capping so an out-of-range
-// day-of-month (or, for Gal/Eph/Php/Col, an out-of-range month-as-chapter)
-// never produces a reference that doesn't exist, e.g. Psalm 8:12.
+// ─── Safe M:D fallback (last resort, used only if the daily-verses edge ───
+// ─── function is unreachable — e.g. a network/outage failure) ──────────────
+// This does not attempt to replicate the edge function's AI-selected book
+// variety — it's a simple, guaranteed-valid Psalms/Proverbs/monthly-NT-book
+// reference so the page never breaks. Caps an out-of-range day-of-month (or,
+// for Gal/Eph/Php/Col, an out-of-range month-as-chapter) so it never
+// produces a reference that doesn't exist, e.g. Psalm 8:12.
 
 const PSALM_MAX_BY_MONTH: Record<number, number> = {
   1: 6, 2: 12, 3: 8, 4: 8, 5: 12, 6: 10, 7: 17, 8: 9, 9: 20, 10: 18, 11: 7, 12: 8,
@@ -187,7 +190,8 @@ function cap(value: number, max: number): number {
 
 /**
  * Safe fallback refs for a given calendar month/day, used only when the
- * verse_map table can't be read. Always returns valid, existing references.
+ * daily-verses edge function can't be reached. Always returns valid,
+ * existing references.
  */
 export function getSafeDailyRefs(month: number, day: number) {
   const psalmMax = PSALM_MAX_BY_MONTH[month] ?? 8

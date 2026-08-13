@@ -1,38 +1,14 @@
-import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Sparkles, Loader2, BookOpen } from 'lucide-react'
-import { studyVerse } from '@/lib/gemini'
-import type { BibleVerse, VerseStudy } from '@/types'
+import { X, Sparkles, BookOpen } from 'lucide-react'
+import type { BibleVerse, MoedVerseOption } from '@/types'
 
 interface VerseStudyModalProps {
   verse: BibleVerse
-  hebrewDate: string
+  study: MoedVerseOption | null
   onClose: () => void
 }
 
-export function VerseStudyModal({ verse, hebrewDate, onClose }: VerseStudyModalProps) {
-  const [study, setStudy] = useState<VerseStudy | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function load() {
-      try {
-        const result = await studyVerse(verse.ref, verse.text, hebrewDate)
-        if (!cancelled) setStudy(result)
-      } catch {
-        if (!cancelled) setError('Unable to load the study. Please try again.')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-    load()
-
-    return () => { cancelled = true }
-  }, [verse, hebrewDate])
-
+export function VerseStudyModal({ verse, study, onClose }: VerseStudyModalProps) {
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex flex-col">
@@ -83,16 +59,11 @@ export function VerseStudyModal({ verse, hebrewDate, onClose }: VerseStudyModalP
               </div>
             </div>
 
-            {loading && (
-              <div className="flex flex-col items-center py-10 gap-3">
-                <Loader2 className="w-8 h-8 text-gold-500 animate-spin" />
-                <p className="text-hope-gray/50 text-sm font-body">Revealing deeper meaning…</p>
-              </div>
-            )}
-
-            {error && (
+            {!study && (
               <div className="text-center py-6">
-                <p className="text-red-500 text-sm">{error}</p>
+                <p className="text-hope-gray/50 text-sm">
+                  Deeper study is unavailable right now — please check back soon.
+                </p>
               </div>
             )}
 
@@ -119,12 +90,12 @@ export function VerseStudyModal({ verse, hebrewDate, onClose }: VerseStudyModalP
                   <p className="text-hope-gray font-body text-sm leading-relaxed">{study.meaning}</p>
                 </div>
 
-                {/* Today's revelation */}
+                {/* Calendar connection */}
                 <div className="card bg-gradient-to-br from-hope-blue to-hope-blue/80 border-0">
                   <p className="text-xs font-heading font-semibold text-gold-400 uppercase tracking-wider mb-2">
-                    Today's Revelation · {hebrewDate}
+                    Context & Calendar Connection
                   </p>
-                  <p className="text-white font-body text-sm leading-relaxed">{study.todays_revelation}</p>
+                  <p className="text-white font-body text-sm leading-relaxed">{study.calendar_connection}</p>
                 </div>
 
                 {/* Prayer prompt */}

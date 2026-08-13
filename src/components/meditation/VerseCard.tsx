@@ -3,11 +3,12 @@ import { BookmarkPlus, BookmarkCheck, Share2, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/contexts/store'
 import { supabase } from '@/lib/supabase'
-import type { BibleVerse } from '@/types'
+import type { BibleVerse, MoedVerseOption } from '@/types'
 
 interface VerseCardProps {
   verse: BibleVerse
   verseNumber: number
+  study?: MoedVerseOption
   onStudy: () => void
 }
 
@@ -18,14 +19,14 @@ const BOOK_LABELS: Record<string, string> = {
   EPH: 'Ephesians', PHP: 'Philippians', COL: 'Colossians',
 }
 
-export function VerseCard({ verse, verseNumber, onStudy }: VerseCardProps) {
+export function VerseCard({ verse, verseNumber, study, onStudy }: VerseCardProps) {
   const { user, favorites, addFavorite, removeFavorite } = useAppStore()
   const isSaved = favorites.some(
     (f) => f.book === verse.book && f.chapter === verse.chapter && f.verse === verse.verse
   )
   const [saving, setSaving] = useState(false)
 
-  const bookLabel = BOOK_LABELS[verse.book] ?? verse.book
+  const bookLabel = study?.book_name ?? BOOK_LABELS[verse.book] ?? verse.book
 
   async function toggleFavorite() {
     if (!user) return
@@ -94,13 +95,28 @@ export function VerseCard({ verse, verseNumber, onStudy }: VerseCardProps) {
         "{verse.text}"
       </p>
 
+      {/* Calendar Connection */}
+      {study && (
+        <div className="mb-4 rounded-xl bg-hope-green/5 border border-hope-green/10 p-3">
+          <p className="text-[10px] font-heading font-semibold text-hope-green uppercase tracking-wider mb-1">
+            Calendar Connection
+          </p>
+          <p className="text-hope-gray/80 text-xs font-body leading-relaxed">
+            {study.calendar_connection}
+          </p>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex items-center gap-2 border-t border-gray-100 pt-3">
         <button
           onClick={onStudy}
+          disabled={!study}
           className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl
                      bg-hope-blue text-white text-xs font-heading font-semibold
-                     hover:bg-hope-blue/90 active:scale-95 transition-all"
+                     hover:bg-hope-blue/90 active:scale-95 transition-all
+                     disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+          aria-label={study ? 'Study Deeper' : 'Deeper study unavailable'}
         >
           <Sparkles className="w-3.5 h-3.5" />
           Study Deeper

@@ -9,6 +9,7 @@ import type {
   BibleVerse,
   HebrewDate,
   WatchName,
+  MoedDailyContent,
 } from '@/types'
 
 // ─── App Store ───────────────────────────────────────────────────────────────
@@ -33,6 +34,10 @@ interface AppState {
   // Today's 3 daily verses
   dailyVerses: BibleVerse[]
   setDailyVerses: (verses: BibleVerse[]) => void
+
+  // Today's Moed content (numerology + per-verse Greek/Hebrew insight & calendar connection)
+  moedContent: MoedDailyContent | null
+  setMoedContent: (content: MoedDailyContent | null) => void
 
   // Favorites
   favorites: FavoriteVerse[]
@@ -78,6 +83,10 @@ export const useAppStore = create<AppState>()(
       // Daily verses
       dailyVerses: [],
       setDailyVerses: (verses) => set({ dailyVerses: verses }),
+
+      // Moed content
+      moedContent: null,
+      setMoedContent: (content) => set({ moedContent: content }),
 
       // Favorites
       favorites: [],

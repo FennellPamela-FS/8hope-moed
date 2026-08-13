@@ -28,14 +28,27 @@ export interface VerseRef {
   verse: number
 }
 
-export interface VerseMapEntry {
-  id: string
-  month: number          // 1–12
-  day: number            // 1–31
-  verse_1: VerseRef
-  verse_2: VerseRef
-  verse_3: VerseRef
-  theme?: string
+export interface MoedVerseOption {
+  slot: 1 | 2 | 3
+  book_code: string
+  book_name: string
+  chapter: number
+  verse: number
+  testament: 'OT' | 'NT'
+  original_language: 'Hebrew' | 'Greek'
+  hebrew_greek_word: string
+  transliteration: string
+  meaning: string
+  calendar_connection: string
+  prayer_prompt: string
+}
+
+export interface MoedDailyContent {
+  month: number
+  day: number
+  month_numerology: { theme: string; explanation: string }
+  verses: MoedVerseOption[]   // exactly 3
+  source: 'cache' | 'generated'
 }
 
 // ─── Bible ───────────────────────────────────────────────────────────────────
@@ -99,19 +112,6 @@ export interface JournalEntry {
   verse_refs?: VerseRef[]
   created_at: string
   updated_at: string
-}
-
-// ─── AI Study ────────────────────────────────────────────────────────────────
-
-export interface VerseStudy {
-  verse_ref: string
-  verse_text: string
-  hebrew_greek_word: string
-  original_language: 'Hebrew' | 'Greek'
-  transliteration: string
-  meaning: string
-  todays_revelation: string
-  prayer_prompt: string
 }
 
 // ─── Church License ──────────────────────────────────────────────────────────
