@@ -32,14 +32,20 @@ const BIBLE_BASE = 'https://api.scripture.api.bible/v1'
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
 
 // Bible IDs used to cross-validate a candidate reference before it's ever
-// shown to a user. AMP is omitted: bible.ts's getBibleId() already falls
-// back to KJV for AMP (not resolvable on this API account) — pre-existing,
-// out of scope here.
+// shown to a user — every version currently offered in the picker
+// (src/lib/bible.ts BIBLE_VERSIONS) that this account can actually fetch
+// content for. NASB and AMP are both omitted: NASB appears in this
+// account's /bibles listing but its verses endpoint returns 403 (listed
+// != licensed for content — confirmed live), and AMP doesn't appear in
+// the listing at all. Both are pending on the api.bible dashboard side.
+// Add their IDs here once a real fetch against them returns 200.
 const VALIDATION_BIBLE_IDS = {
-  KJV:  'de4e12af7f28f599-02',
-  NLT:  '65eec8e0b60e656b-01',
-  ESV:  '9879dbb7cfe39e4d-01',
-  NKJV: '63097d2a0a2f7db3-01',
+  KJV: 'de4e12af7f28f599-02',
+  ASV: '06125adad2d5898a-01',
+  WEB: '9879dbb7cfe39e4d-01',
+  LSV: '01b29f4b342acc35-01',
+  FBV: '65eec8e0b60e656b-01',
+  MSG: '6f11a7de016f942e-01',
 } as const
 
 type Testament = 'OT' | 'NT'
@@ -200,7 +206,7 @@ interface SelectedRef {
   kjvText: string
 }
 
-const OTHER_VERSIONS = ['NLT', 'ESV', 'NKJV'] as const
+const OTHER_VERSIONS = ['ASV', 'WEB', 'LSV', 'FBV', 'MSG'] as const
 
 /**
  * Picks 3 distinct, category-diverse books that genuinely have chapter:verse

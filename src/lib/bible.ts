@@ -3,25 +3,29 @@ import type { BibleVersion, BibleVerse } from '@/types'
 const API_KEY = import.meta.env.VITE_BIBLE_API_KEY
 const BASE_URL = 'https://api.scripture.api.bible/v1'
 
-// ─── Known public-domain IDs (stable across accounts) ────────────────────────
-// For copyrighted versions (NKJV, AMP, MSG), IDs are resolved at runtime
-// from your account's available Bibles via resolveBibleIds().
+// ─── Known Public Domain / Creative Commons IDs (always available on the ────
+// ─── Starter plan, not subject to the 3-licensed-Bible selection limit) ─────
+// For licensed versions (MSG, NASB, AMP), IDs are resolved at runtime from
+// your account's currently-selected 3 via resolveBibleIds() — which 3 are
+// available depends on your api.bible dashboard plan selection and can
+// change, so these aren't hardcoded.
 const KNOWN_IDS: Partial<Record<BibleVersion, string>> = {
   KJV: 'de4e12af7f28f599-02',
-  NIV: '78a9f6124f344018-01',
-  NLT: '65eec8e0b60e656b-01',
-  ESV: '9879dbb7cfe39e4d-01',
+  ASV: '06125adad2d5898a-01',
+  WEB: '9879dbb7cfe39e4d-01',
+  LSV: '01b29f4b342acc35-01',
+  FBV: '65eec8e0b60e656b-01',
 }
 
 // Runtime-resolved IDs (populated on first call)
 let resolvedIds: Partial<Record<BibleVersion, string>> = { ...KNOWN_IDS }
 let resolved = false
 
-// Name fragments used to match copyrighted versions in the /bibles list
+// Name fragments used to match licensed versions in the /bibles list
 const VERSION_NAME_HINTS: Partial<Record<BibleVersion, string>> = {
-  NKJV: 'new king james',
-  AMP:  'amplified',
   MSG:  'message',
+  NASB: 'new american standard',
+  AMP:  'amplified',
 }
 
 /**
@@ -46,13 +50,32 @@ export async function resolveBibleIds(): Promise<void> {
     const data = await res.json()
     const bibles: Array<{ id: string; name: string }> = data.data ?? []
 
-    for (const version of missing) {
-      const hint = VERSION_NAME_HINTS[version]?.toLowerCase()
-      const match = bibles.find((b) => b.name.toLowerCase().includes(hint ?? ''))
-      if (match) resolvedIds[version] = match.id
-    }
+    await Promise.all(
+      missing.map(async (version) => {
+        const hint = VERSION_NAME_HINTS[version]?.toLowerCase()
+        const match = bibles.find((b) => b.name.toLowerCase().includes(hint ?? ''))
+        if (!match) return
+        // Being listed in /bibles doesn't guarantee actual content access —
+        // some accounts show a Bible as discoverable while a 403 comes back
+        // on the real verses endpoint (seen live with NASB on this account).
+        // Confirm it's genuinely fetchable before trusting it, so a picked
+        // version never silently breaks verse loading.
+        if (await canFetchContent(match.id)) resolvedIds[version] = match.id
+      })
+    )
   } catch {
     // Non-fatal — will fall back to KJV for unresolved versions
+  }
+}
+
+async function canFetchContent(bibleId: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE_URL}/bibles/${bibleId}/verses/JHN.1.1?content-type=text`, {
+      headers: { 'api-key': API_KEY },
+    })
+    return res.ok
+  } catch {
+    return false
   }
 }
 
@@ -132,8 +155,7 @@ export async function fetchVerseOfTheDay(version: BibleVersion = 'KJV'): Promise
   }
 }
 
-// NIV and MSG hidden until API access is resolved in a future phase
-export const BIBLE_VERSIONS: BibleVersion[] = ['KJV', 'NLT', 'ESV', 'NKJV', 'AMP']
+export const BIBLE_VERSIONS: BibleVersion[] = ['KJV', 'ASV', 'WEB', 'LSV', 'FBV', 'MSG', 'NASB', 'AMP']
 
 // NT book by month (for Moed's third daily verse)
 export const NT_BOOK_BY_MONTH: Record<number, string> = {

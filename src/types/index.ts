@@ -53,7 +53,7 @@ export interface MoedDailyContent {
 
 // ─── Bible ───────────────────────────────────────────────────────────────────
 
-export type BibleVersion = 'KJV' | 'NIV' | 'NLT' | 'ESV' | 'NKJV' | 'AMP' | 'MSG'
+export type BibleVersion = 'KJV' | 'ASV' | 'WEB' | 'LSV' | 'FBV' | 'MSG' | 'NASB' | 'AMP'
 
 export interface BibleVerse {
   ref: string            // e.g. "Psalm 7:28"
