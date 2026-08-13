@@ -254,7 +254,7 @@ For EACH of the 3 verses below, in the same order, produce:
 1. "hebrew_greek_word": the single most theologically significant Hebrew or Greek word in this verse, in its original script, with common English rendering.
 2. "transliteration": phonetic transliteration.
 3. "meaning": 2-3 sentences, rooted in standard lexical scholarship (Strong's, BDB, Thayer's) — no invented etymology.
-4. "calendar_connection": 2-4 sentences tying this verse/word to the Tabernacle, the appointed Feasts (Moedim) of Leviticus 23, or the agricultural/harvest season of the ancient Hebrew calendar — whichever is most textually honest. If no strong connection genuinely exists, say so honestly rather than forcing one.
+4. "calendar_connection": 2-4 sentences tying this verse/word to the Tabernacle, the appointed Feasts (Moedim) of Leviticus 23, or the agricultural/harvest season of the ancient Hebrew calendar — whichever is most textually honest. If no strong, genuine connection exists, return an empty string ("") for this field — do not force one, and do not explain why none exists.
 5. "prayer_prompt": one sentence, a prayer invitation growing from the above.
 
 ${lines}
@@ -292,7 +292,11 @@ function isValidShape(parsed: unknown): parsed is { verses: GeneratedVerseConten
       typeof (v as GeneratedVerseContent).meaning === 'string' &&
       (v as GeneratedVerseContent).meaning.length >= 20 &&
       typeof (v as GeneratedVerseContent).calendar_connection === 'string' &&
-      (v as GeneratedVerseContent).calendar_connection.length >= 20 &&
+      // Empty string is valid — it means Gemini honestly found no genuine
+      // connection, rather than forcing one. Only non-empty values must
+      // meet the length bar (guards against a truncated/junk response).
+      ((v as GeneratedVerseContent).calendar_connection === '' ||
+        (v as GeneratedVerseContent).calendar_connection.length >= 20) &&
       typeof (v as GeneratedVerseContent).prayer_prompt === 'string' &&
       (v as GeneratedVerseContent).prayer_prompt.length > 0
   )

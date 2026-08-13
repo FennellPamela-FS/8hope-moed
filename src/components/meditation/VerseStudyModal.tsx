@@ -90,13 +90,15 @@ export function VerseStudyModal({ verse, study, onClose }: VerseStudyModalProps)
                   <p className="text-hope-gray font-body text-sm leading-relaxed">{study.meaning}</p>
                 </div>
 
-                {/* Calendar connection */}
-                <div className="card bg-gradient-to-br from-hope-blue to-hope-blue/80 border-0">
-                  <p className="text-xs font-heading font-semibold text-gold-400 uppercase tracking-wider mb-2">
-                    Context & Calendar Connection
-                  </p>
-                  <p className="text-white font-body text-sm leading-relaxed">{study.calendar_connection}</p>
-                </div>
+                {/* Calendar connection — only when Gemini found a genuine one */}
+                {study.calendar_connection && (
+                  <div className="card bg-gradient-to-br from-hope-blue to-hope-blue/80 border-0">
+                    <p className="text-xs font-heading font-semibold text-gold-400 uppercase tracking-wider mb-2">
+                      Context & Calendar Connection
+                    </p>
+                    <p className="text-white font-body text-sm leading-relaxed">{study.calendar_connection}</p>
+                  </div>
+                )}
 
                 {/* Prayer prompt */}
                 <div className="card border-2 border-hope-green/30 bg-hope-green/5">

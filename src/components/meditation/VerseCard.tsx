@@ -95,8 +95,8 @@ export function VerseCard({ verse, verseNumber, study, onStudy }: VerseCardProps
         "{verse.text}"
       </p>
 
-      {/* Calendar Connection */}
-      {study && (
+      {/* Calendar Connection — only when Gemini found a genuine one */}
+      {study?.calendar_connection && (
         <div className="mb-4 rounded-xl bg-hope-green/5 border border-hope-green/10 p-3">
           <p className="text-[10px] font-heading font-semibold text-hope-green uppercase tracking-wider mb-1">
             Calendar Connection
