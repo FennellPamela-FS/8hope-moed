@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { BookOpen, ChevronRight, PenLine, Bookmark } from 'lucide-react'
+import { BookOpen, ChevronRight, PenLine, Bookmark, Scale } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AppShell } from '@/components/layout/AppShell'
@@ -73,6 +73,34 @@ export function Dashboard() {
             <ChevronRight className="w-4 h-4 text-white/30 group-hover:text-white/70 transition-colors shrink-0 ml-2" />
           </button>
         </motion.div>
+
+        {/* AXIOS — enabled accounts only */}
+        {user?.axios_enabled && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+            <button
+              onClick={() => navigate('/axios')}
+              className="w-full card flex items-center justify-between group
+                         transition-all duration-200 active:scale-[0.99]
+                         bg-gradient-to-br from-hope-dark to-hope-blue border-0 text-left"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-xl bg-gold-500/20 flex items-center justify-center shrink-0">
+                  <Scale className="w-5 h-5 text-gold-400" />
+                </div>
+                <div>
+                  <p className="text-gold-400/90 font-heading text-[10px] font-semibold uppercase tracking-widest mb-0.5">
+                    Romans 8:18 · Our Anchors
+                  </p>
+                  <h3 className="text-white font-heading font-bold text-base leading-snug tracking-wide">
+                    AXIOS
+                  </h3>
+                  <p className="text-white/50 text-xs mt-0.5">Walk worthy of the word over you</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-white/30 group-hover:text-white/70 transition-colors shrink-0 ml-2" />
+            </button>
+          </motion.div>
+        )}
 
         {/* Quick Access */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>

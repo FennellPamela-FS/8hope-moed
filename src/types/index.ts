@@ -96,6 +96,8 @@ export interface UserProfile {
   screensaver_image?: string
   notify_at_watch: boolean
   onboarding_complete: boolean
+  axios_enabled?: boolean
+  axios_opted_in_at?: string | null
   created_at: string
 }
 
@@ -140,4 +142,47 @@ export interface ChurchLicense {
   max_users: number
   active_until: string
   created_at: string
+}
+
+// ─── AXIOS ───────────────────────────────────────────────────────────────────
+
+export interface AxiosWord {
+  id: string
+  user_id: string
+  title: string
+  spoken_by: string | null
+  spoken_on: string | null      // YYYY-MM-DD
+  full_text: string | null
+  application: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface AxiosAnchor {
+  id: string
+  word_id: string
+  user_id: string
+  position: number
+  title: string
+  phrase: string
+  explanation: string | null
+  verse_refs: VerseRef[]
+  review_box: number            // 0–4
+  next_review_on: string        // YYYY-MM-DD
+  created_at: string
+  updated_at: string
+}
+
+export type AxiosWalk = 'yes' | 'partly' | 'not_yet'
+
+export interface AxiosCheckin {
+  id: string
+  user_id: string
+  checkin_date: string          // YYYY-MM-DD
+  walk_matched: AxiosWalk
+  action_step: string | null
+  action_done: boolean
+  note: string | null
+  created_at: string
+  updated_at: string
 }

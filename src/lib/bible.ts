@@ -158,6 +158,34 @@ export async function fetchVerses(
 }
 
 /**
+ * Fetches a whole chapter as plain text, verse numbers inline as "[n]".
+ */
+export async function fetchChapter(
+  book: string,
+  chapter: number,
+  version: BibleVersion = 'KJV'
+): Promise<{ ref: string; text: string; version: BibleVersion }> {
+  await resolveBibleIds()
+
+  const bibleId = getBibleId(version)
+  const chapterId = `${book}.${chapter}`
+  const url = `${BASE_URL}/bibles/${bibleId}/chapters/${chapterId}?content-type=text&include-notes=false&include-titles=false&include-verse-numbers=true`
+
+  const res = await fetch(url, { headers: { 'api-key': API_KEY } })
+
+  if (!res.ok) {
+    throw new Error(`Bible API error ${res.status} for ${chapterId}`)
+  }
+
+  const data = (await res.json()).data
+  return {
+    ref: data.reference,
+    text: data.content.replace(/<[^>]+>/g, '').trim(),
+    version,
+  }
+}
+
+/**
  * Fetches the Verse of the Day.
  */
 export async function fetchVerseOfTheDay(version: BibleVersion = 'KJV'): Promise<BibleVerse> {

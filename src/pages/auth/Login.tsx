@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react'
 
-export function Login() {
+export function Login({ notice }: { notice?: string }) {
+  const [mode, setMode] = useState<'signin' | 'forgot'>('signin')
+  const [resetSent, setResetSent] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(notice ?? null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -21,6 +23,92 @@ export function Login() {
     }
 
     setLoading(false)
+  }
+
+  async function handleForgot(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+
+    setLoading(false)
+    if (error) {
+      setError('Could not send the reset email. Please try again in a few minutes.')
+      return
+    }
+    setResetSent(true)
+  }
+
+  function switchMode(next: 'signin' | 'forgot') {
+    setMode(next)
+    setError(null)
+    setResetSent(false)
+  }
+
+  if (mode === 'forgot') {
+    return (
+      <div className="min-h-screen bg-hope-dark flex flex-col items-center justify-center px-6">
+        <div className="mb-10 text-center">
+          <h1 className="font-heading text-5xl font-bold text-gradient-gold mb-2">8Hope</h1>
+          <p className="text-white/60 font-body text-sm">Find Your Divine Time to Pray</p>
+        </div>
+
+        <form onSubmit={handleForgot} className="card max-w-sm w-full animate-slide-up">
+          <h2 className="font-heading text-xl font-semibold text-hope-blue mb-1">Reset Password</h2>
+          {resetSent ? (
+            <p className="text-gray-600 text-sm mb-6">
+              If an account exists for <span className="font-semibold">{email}</span>, a reset link is on its way.
+              Open it on this device to choose a new password.
+            </p>
+          ) : (
+            <>
+              <p className="text-gray-500 text-sm mb-6">Enter your email and we'll send you a link to set a new password.</p>
+
+              <label className="block mb-1 text-sm font-medium text-gray-700" htmlFor="reset-email">
+                Email address
+              </label>
+              <div className="relative mb-6">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  id="reset-email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-3 text-sm
+                             focus:outline-none focus:ring-2 focus:ring-gold-500"
+                />
+              </div>
+
+              {error && (
+                <p className="text-red-500 text-sm mb-4">{error}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-gold w-full flex items-center justify-center gap-2"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                Send Reset Link
+              </button>
+            </>
+          )}
+
+          <button
+            type="button"
+            onClick={() => switchMode('signin')}
+            className="w-full text-center text-sm text-hope-blue/70 hover:text-hope-blue mt-4"
+          >
+            Back to sign in
+          </button>
+        </form>
+      </div>
+    )
   }
 
   return (
@@ -52,9 +140,18 @@ export function Login() {
           />
         </div>
 
-        <label className="block mb-1 text-sm font-medium text-gray-700" htmlFor="password">
-          Password
-        </label>
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-sm font-medium text-gray-700" htmlFor="password">
+            Password
+          </label>
+          <button
+            type="button"
+            onClick={() => switchMode('forgot')}
+            className="text-xs text-gold-600 hover:text-gold-700 font-medium"
+          >
+            Forgot password?
+          </button>
+        </div>
         <div className="relative mb-6">
           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input

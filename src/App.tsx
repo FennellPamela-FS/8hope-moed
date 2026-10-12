@@ -6,6 +6,7 @@ import type { UserProfile } from '@/types'
 
 import { Landing } from '@/pages/Landing'
 import { Login } from '@/pages/auth/Login'
+import { ResetPassword } from '@/pages/auth/ResetPassword'
 import { Onboarding } from '@/pages/onboarding/Onboarding'
 import { Dashboard } from '@/pages/Dashboard'
 import { Moed } from '@/pages/Moed'
@@ -13,11 +14,17 @@ import { Journal } from '@/pages/Journal'
 import { Favorites } from '@/pages/Favorites'
 import { Settings } from '@/pages/Settings'
 import { Watches } from '@/pages/Watches'
+import { AxiosHome } from '@/pages/axios/AxiosHome'
+import { AxiosWord } from '@/pages/axios/AxiosWord'
 
 export default function App() {
   const { user, setUser } = useAppStore()
   const [loading, setLoading] = useState(true)
   const [showLanding, setShowLanding] = useState(true)
+  // Set when the user arrives from a password-reset email link (the link
+  // redirects to /reset-password and Supabase signs them in from it).
+  const [recovering, setRecovering] = useState(() => window.location.pathname === '/reset-password')
+  const [loginNotice, setLoginNotice] = useState<string | undefined>()
 
   useEffect(() => {
     // Check existing session
@@ -25,12 +32,21 @@ export default function App() {
       if (session?.user) {
         await loadProfile(session.user.id, session.user.email ?? '')
         setShowLanding(false) // skip landing if already logged in
+      } else if (window.location.pathname === '/reset-password') {
+        // Reset link expired or already used — no session came with it.
+        window.history.replaceState(null, '', '/')
+        setRecovering(false)
+        setShowLanding(false)
+        setLoginNotice('That reset link has expired or was already used. Tap “Forgot password?” to get a new one.')
       }
       setLoading(false)
     })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setRecovering(true)
+      }
       if (event === 'SIGNED_IN' && session?.user) {
         await loadProfile(session.user.id, session.user.email ?? '')
       }
@@ -75,10 +91,12 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      {!user && showLanding ? (
+      {recovering && user ? (
+        <ResetPassword onDone={() => setRecovering(false)} />
+      ) : !user && showLanding ? (
         <Landing onEnter={() => setShowLanding(false)} />
       ) : !user ? (
-        <Login />
+        <Login notice={loginNotice} />
       ) : !user.onboarding_complete ? (
         <Onboarding />
       ) : (
@@ -89,6 +107,8 @@ export default function App() {
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/settings"  element={<Settings />} />
           <Route path="/watches"   element={<Watches />} />
+          <Route path="/axios"     element={<AxiosHome />} />
+          <Route path="/axios/:wordId" element={<AxiosWord />} />
           <Route path="*"          element={<Navigate to="/" replace />} />
         </Routes>
       )}
