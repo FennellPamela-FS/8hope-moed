@@ -26,9 +26,11 @@ export function Flashcards({ anchors, onUpdate, onClose }: FlashcardsProps) {
   async function answer(knewIt: boolean) {
     if (!card) return
     const schedule = nextReview(card.review_box, knewIt)
-    const updated = { ...card, ...schedule, updated_at: new Date().toISOString() }
+    // Review progress only — leaves updated_at alone, which tracks content
+    // edits (a changed anchor is what makes the 7-day guide stale).
+    const updated = { ...card, ...schedule }
     onUpdate(updated)
-    supabase.from('axios_anchors').update({ ...schedule, updated_at: updated.updated_at }).eq('id', card.id)
+    supabase.from('axios_anchors').update(schedule).eq('id', card.id)
       .then(({ error }) => { if (error) console.error('anchor review save failed', error) })
 
     setFlipped(false)

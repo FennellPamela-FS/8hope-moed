@@ -7,6 +7,7 @@ import { ScriptureVerse } from '@/components/axios/ScriptureVerse'
 import { Flashcards } from '@/components/axios/Flashcards'
 import { AnchorEditor, type AnchorDraft } from '@/components/axios/AnchorEditor'
 import { WordForm, type WordDraft } from '@/components/axios/WordForm'
+import { MeditationGuide } from '@/components/axios/MeditationGuide'
 import { useAppStore } from '@/contexts/store'
 import { supabase } from '@/lib/supabase'
 import { localDateString } from '@/lib/axios-content'
@@ -157,6 +158,14 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
             {due.length > 0 ? `Memorize (${due.length} due)` : 'Memorize'}
           </button>
           <button onClick={() => setMemorizing(anchors)} className="btn-outline text-sm">Review all</button>
+        </div>
+      )}
+
+      {/* 7-day guide */}
+      {anchors.length > 0 && (
+        <div>
+          <SectionLabel>7-Day Meditation Guide</SectionLabel>
+          <MeditationGuide wordId={wordId} anchors={anchors} />
         </div>
       )}
 

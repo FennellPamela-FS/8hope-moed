@@ -186,3 +186,24 @@ export interface AxiosCheckin {
   created_at: string
   updated_at: string
 }
+
+export interface AxiosGuideDay {
+  day: number                   // 1–7
+  title: string
+  anchors: string[]             // anchor titles this day covers
+  scriptures: string[]          // e.g. "Romans 8:18"
+  meditation: string
+  declaration: string
+  prayer: string
+  action_step: string
+}
+
+export interface AxiosGuide {
+  id: string
+  word_id: string
+  user_id: string
+  days: AxiosGuideDay[]
+  anchor_count: number
+  model: string
+  generated_at: string
+}

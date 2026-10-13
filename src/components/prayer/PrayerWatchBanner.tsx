@@ -1,12 +1,36 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Clock } from 'lucide-react'
 import { useAppStore } from '@/contexts/store'
+import { supabase } from '@/lib/supabase'
+import type { AxiosAnchor } from '@/types'
+
+type BannerAnchor = Pick<AxiosAnchor, 'id' | 'title' | 'phrase'>
 
 export function PrayerWatchBanner() {
-  const { activeWatch, hebrewDate } = useAppStore()
+  const { activeWatch, hebrewDate, user } = useAppStore()
   const navigate = useNavigate()
+  const [anchors, setAnchors] = useState<BannerAnchor[]>([])
+
+  const axiosActive = !!user?.axios_enabled && !!user.axios_opted_in_at
+
+  useEffect(() => {
+    if (!axiosActive || !user) return
+    supabase
+      .from('axios_anchors')
+      .select('id, title, phrase')
+      .eq('user_id', user.id)
+      .order('created_at')
+      .then(({ data }) => setAnchors((data as BannerAnchor[]) ?? []))
+  }, [axiosActive, user])
 
   if (!activeWatch) return null
+
+  // A different AXIOS anchor for each watch, shifting day by day so every
+  // anchor comes around.
+  const anchor = anchors.length > 0
+    ? anchors[(dayOfYear() * 8 + activeWatch.watch_number - 1) % anchors.length]
+    : null
 
   return (
     <button
@@ -46,7 +70,22 @@ export function PrayerWatchBanner() {
             {activeWatch.meditation_prompt}
           </p>
         </div>
+
+        {/* AXIOS anchor for this watch */}
+        {anchor && (
+          <div className="mt-3 rounded-xl bg-black/15 px-3 py-2">
+            <p className="text-white/70 text-[10px] font-heading font-semibold uppercase tracking-wider mb-0.5">
+              AXIOS Anchor · {anchor.title}
+            </p>
+            <p className="text-white text-xs font-heading font-semibold leading-snug">"{anchor.phrase}"</p>
+          </div>
+        )}
       </div>
     </button>
   )
+}
+
+function dayOfYear(): number {
+  const now = new Date()
+  return Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86_400_000)
 }
