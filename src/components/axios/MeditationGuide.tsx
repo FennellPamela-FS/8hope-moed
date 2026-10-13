@@ -86,7 +86,7 @@ export function MeditationGuide({ wordId, anchors, relation, givenTo }: Meditati
         >
           {generating ? <><Loader2 className="w-4 h-4 animate-spin" /> Writing your guide…</> : 'Create my 7-day guide'}
         </button>
-        {generating && <p className="text-hope-gray/40 text-[11px]">This can take up to a minute.</p>}
+        {generating && <p className="text-hope-gray/40 text-2xs">This can take up to a minute.</p>}
       </div>
     )
   }
@@ -130,7 +130,7 @@ export function MeditationGuide({ wordId, anchors, relation, givenTo }: Meditati
 
       <div className="card space-y-4">
         <div>
-          <p className="text-[10px] font-heading font-semibold text-gold-600 uppercase tracking-widest">
+          <p className="text-3xs font-heading font-semibold text-gold-600 uppercase tracking-widest">
             Day {current.day}{current.anchors.length > 0 && ` · ${current.anchors.join(' · ')}`}
           </p>
           <h3 className="font-heading font-bold text-hope-blue text-lg leading-snug">{current.title}</h3>
@@ -142,14 +142,14 @@ export function MeditationGuide({ wordId, anchors, relation, givenTo }: Meditati
         <GuideBlock label="Meditate">{current.meditation}</GuideBlock>
 
         <div className="rounded-xl bg-hope-blue p-4">
-          <p className="text-gold-400 text-[10px] font-heading font-semibold uppercase tracking-widest mb-1">Declare</p>
+          <p className="text-gold-400 text-3xs font-heading font-semibold uppercase tracking-widest mb-1">Declare</p>
           <p className="text-white font-heading font-semibold text-sm leading-relaxed">"{current.declaration}"</p>
         </div>
 
         <GuideBlock label="Pray">{current.prayer}</GuideBlock>
 
         <div className="rounded-xl bg-hope-green/5 border border-hope-green/15 p-3">
-          <p className="text-hope-green text-[10px] font-heading font-semibold uppercase tracking-widest mb-1">Walk It Out Today</p>
+          <p className="text-hope-green text-3xs font-heading font-semibold uppercase tracking-widest mb-1">Walk It Out Today</p>
           <p className="text-hope-gray text-sm font-body leading-relaxed">{current.action_step}</p>
         </div>
       </div>
@@ -160,7 +160,7 @@ export function MeditationGuide({ wordId, anchors, relation, givenTo }: Meditati
 function GuideBlock({ label, children }: { label: string; children: string }) {
   return (
     <div>
-      <p className="text-hope-gray/50 text-[10px] font-heading font-semibold uppercase tracking-widest mb-1">{label}</p>
+      <p className="text-hope-gray/50 text-3xs font-heading font-semibold uppercase tracking-widest mb-1">{label}</p>
       <p className="text-hope-gray text-sm font-body leading-relaxed whitespace-pre-line">{children}</p>
     </div>
   )

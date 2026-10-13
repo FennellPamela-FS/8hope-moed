@@ -55,7 +55,7 @@ export function Dashboard() {
                 <BookOpen className="w-5 h-5 text-gold-400" />
               </div>
               <div>
-                <p className="text-gold-400/90 font-heading text-[10px] font-semibold uppercase tracking-widest mb-0.5">
+                <p className="text-gold-400/90 font-heading text-3xs font-semibold uppercase tracking-widest mb-0.5">
                   Daily Scripture
                 </p>
                 <h3 className="text-white font-heading font-bold text-base leading-snug">
@@ -88,7 +88,7 @@ export function Dashboard() {
                   <Scale className="w-5 h-5 text-gold-400" />
                 </div>
                 <div>
-                  <p className="text-gold-400/90 font-heading text-[10px] font-semibold uppercase tracking-widest mb-0.5">
+                  <p className="text-gold-400/90 font-heading text-3xs font-semibold uppercase tracking-widest mb-0.5">
                     Romans 8:18 · Our Anchors
                   </p>
                   <h3 className="text-white font-heading font-bold text-base leading-snug tracking-wide">
@@ -149,7 +149,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-3">
       <div className="w-0.5 h-3.5 rounded-full bg-gold-500" />
-      <h3 className="font-heading text-[10px] font-semibold text-hope-gray/50 uppercase tracking-widest">
+      <h3 className="font-heading text-3xs font-semibold text-hope-gray/50 uppercase tracking-widest">
         {children}
       </h3>
     </div>

@@ -85,7 +85,7 @@ export function VerseCard({ verse, verseNumber, study, onStudy }: VerseCardProps
             {bookLabel} {verse.chapter}:{verse.verse}
           </h4>
         </div>
-        <span className="text-[10px] bg-gray-100 text-gray-500 rounded-full px-2 py-0.5 font-heading">
+        <span className="text-3xs bg-gray-100 text-gray-500 rounded-full px-2 py-0.5 font-heading">
           {verse.version}
         </span>
       </div>
@@ -98,7 +98,7 @@ export function VerseCard({ verse, verseNumber, study, onStudy }: VerseCardProps
       {/* Calendar Connection — only when Gemini found a genuine one */}
       {study?.calendar_connection && (
         <div className="mb-4 rounded-xl bg-hope-green/5 border border-hope-green/10 p-3">
-          <p className="text-[10px] font-heading font-semibold text-hope-green uppercase tracking-wider mb-1">
+          <p className="text-3xs font-heading font-semibold text-hope-green uppercase tracking-wider mb-1">
             Calendar Connection
           </p>
           <p className="text-hope-gray/80 text-xs font-body leading-relaxed">

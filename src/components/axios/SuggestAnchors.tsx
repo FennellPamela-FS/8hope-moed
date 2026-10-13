@@ -89,7 +89,7 @@ export function SuggestAnchors({ wordId, userId, nextPosition, onAdded }: Sugges
         >
           {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Reading your word…</> : <><Wand2 className="w-4 h-4" /> Pull anchors from this word</>}
         </button>
-        {loading && <p className="text-center text-hope-gray/40 text-[11px]">This can take up to a minute.</p>}
+        {loading && <p className="text-center text-hope-gray/40 text-2xs">This can take up to a minute.</p>}
         {error && <p className="text-red-500 text-xs text-center">{error}</p>}
       </div>
     )

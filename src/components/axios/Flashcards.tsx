@@ -54,7 +54,9 @@ export function Flashcards({ anchors, onUpdate, onClose }: FlashcardsProps) {
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col justify-center px-5 pb-10">
+      {/* Centers short cards, scrolls tall ones (large text) without clipping the top. */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="min-h-full flex flex-col justify-center px-5 py-6">
         {card ? (
           <>
             <AnimatePresence mode="wait">
@@ -69,7 +71,7 @@ export function Flashcards({ anchors, onUpdate, onClose }: FlashcardsProps) {
               >
                 {!flipped ? (
                   <>
-                    <p className="text-[10px] font-heading font-semibold text-gold-600 uppercase tracking-widest mb-2">
+                    <p className="text-3xs font-heading font-semibold text-gold-600 uppercase tracking-widest mb-2">
                       Anchor
                     </p>
                     <h3 className="font-heading text-2xl font-bold text-hope-blue leading-snug">{card.title}</h3>
@@ -114,6 +116,7 @@ export function Flashcards({ anchors, onUpdate, onClose }: FlashcardsProps) {
             <button onClick={onClose} className="btn-gold">Done</button>
           </div>
         )}
+      </div>
       </div>
     </div>
   )

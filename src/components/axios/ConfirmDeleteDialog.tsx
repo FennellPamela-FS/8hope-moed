@@ -34,7 +34,7 @@ export function ConfirmDeleteDialog({ title, items, busy, onConfirm, onCancel }:
         animate={{ y: 0, opacity: 1 }}
         role="alertdialog"
         aria-labelledby="confirm-delete-title"
-        className="relative w-full sm:max-w-sm bg-white rounded-t-3xl sm:rounded-3xl p-6 space-y-4"
+        className="relative w-full sm:max-w-sm max-h-[100dvh] overflow-y-auto bg-white rounded-t-3xl sm:rounded-3xl p-6 space-y-4"
       >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center shrink-0">

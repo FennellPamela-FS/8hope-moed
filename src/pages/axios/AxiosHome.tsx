@@ -197,7 +197,7 @@ function EquationCard() {
   return (
     <div className="card bg-gradient-to-br from-hope-blue to-hope-blue/85 border-0 text-white space-y-4">
       <div className="text-center">
-        <p className="text-gold-400/90 font-heading text-[10px] font-semibold uppercase tracking-widest mb-2">The AXIOS Equation</p>
+        <p className="text-gold-400/90 font-heading text-3xs font-semibold uppercase tracking-widest mb-2">The AXIOS Equation</p>
         <p className="font-heading text-2xl font-bold tracking-wide text-gradient-gold">
           AXIOS = Hs(S ≡ L) → G<sub className="text-base">T</sub>
         </p>
@@ -240,7 +240,7 @@ function BaseChapter() {
     <div className="card">
       <button onClick={() => setOpen((o) => !o)} className="w-full flex items-center justify-between text-left">
         <div>
-          <p className="text-[10px] font-heading font-semibold text-gold-600 uppercase tracking-widest">Our Base</p>
+          <p className="text-3xs font-heading font-semibold text-gold-600 uppercase tracking-widest">Our Base</p>
           <h3 className="font-heading font-bold text-hope-blue text-sm">Read Romans 8</h3>
         </div>
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -317,7 +317,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-3">
       <div className="w-0.5 h-3.5 rounded-full bg-gold-500" />
-      <h3 className="font-heading text-[10px] font-semibold text-hope-gray/50 uppercase tracking-widest">
+      <h3 className="font-heading text-3xs font-semibold text-hope-gray/50 uppercase tracking-widest">
         {children}
       </h3>
     </div>

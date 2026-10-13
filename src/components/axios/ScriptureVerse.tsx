@@ -31,7 +31,7 @@ export function ScriptureVerse({ verseRef, label, variant = 'card' }: ScriptureV
   if (variant === 'inline') {
     return (
       <div className="rounded-xl bg-hope-blue/5 border border-hope-blue/10 p-3">
-        <p className="text-[10px] font-heading font-semibold text-hope-blue uppercase tracking-wider mb-1">
+        <p className="text-3xs font-heading font-semibold text-hope-blue uppercase tracking-wider mb-1">
           {refLabel}
         </p>
         <p className="text-hope-gray/80 text-xs font-body leading-relaxed">
@@ -46,13 +46,13 @@ export function ScriptureVerse({ verseRef, label, variant = 'card' }: ScriptureV
       <div className="flex items-center justify-between mb-2">
         <div>
           {label && (
-            <span className="text-[10px] font-heading font-semibold text-gold-600 uppercase tracking-widest">
+            <span className="text-3xs font-heading font-semibold text-gold-600 uppercase tracking-widest">
               {label}
             </span>
           )}
           <h4 className="font-heading font-bold text-hope-blue text-sm">{refLabel}</h4>
         </div>
-        <span className="text-[10px] bg-gray-100 text-gray-500 rounded-full px-2 py-0.5 font-heading">
+        <span className="text-3xs bg-gray-100 text-gray-500 rounded-full px-2 py-0.5 font-heading">
           {bibleVersion}
         </span>
       </div>

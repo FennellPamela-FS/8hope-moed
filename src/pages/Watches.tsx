@@ -94,7 +94,7 @@ function WatchAccordion({ watch, isExpanded, isActive, isDivineTime, onToggle, d
             <span className="font-heading font-bold text-sm">{watch.label}</span>
             {isActive && (
               <span className={cn(
-                'text-[10px] font-heading font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide',
+                'text-3xs font-heading font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide',
                 isExpanded ? 'bg-white/20 text-white' : 'bg-gold-100 text-gold-600',
               )}>
                 Active Now

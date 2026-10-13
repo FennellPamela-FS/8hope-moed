@@ -98,6 +98,7 @@ export interface UserProfile {
   onboarding_complete: boolean
   axios_enabled?: boolean
   axios_opted_in_at?: string | null
+  text_scale?: number           // percent; see src/lib/textScale.ts
   created_at: string
 }
 

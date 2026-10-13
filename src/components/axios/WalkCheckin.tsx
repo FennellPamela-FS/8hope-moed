@@ -77,7 +77,7 @@ export function WalkCheckin({ userId }: { userId: string }) {
     <div className="space-y-3">
       <div className="card space-y-3">
         <div>
-          <p className="text-[10px] font-heading font-semibold text-gold-600 uppercase tracking-widest">S ≡ L · Today</p>
+          <p className="text-3xs font-heading font-semibold text-gold-600 uppercase tracking-widest">S ≡ L · Today</p>
           <h3 className="font-heading font-bold text-hope-blue">Did my walk match the call today?</h3>
         </div>
 
@@ -131,7 +131,7 @@ export function WalkCheckin({ userId }: { userId: string }) {
 
       {past.length > 0 && (
         <div className="card">
-          <p className="text-[10px] font-heading font-semibold text-hope-gray/50 uppercase tracking-widest mb-2">Recent walk</p>
+          <p className="text-3xs font-heading font-semibold text-hope-gray/50 uppercase tracking-widest mb-2">Recent walk</p>
           <ul className="divide-y divide-gray-100">
             {past.map((r) => (
               <li key={r.id} className="py-2 flex items-start justify-between gap-3 text-xs font-body">

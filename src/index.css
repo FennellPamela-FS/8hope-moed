@@ -24,6 +24,8 @@
     --hope-green: #2D6A4F;
     --hope-dark:  #0F1C2E;
     --hope-light: #F8F6F0;
+    /* Settings → Text Size; set on <html> by src/lib/textScale.ts */
+    --text-scale: 1;
   }
 
   html {
@@ -32,6 +34,7 @@
 
   body {
     @apply font-body bg-hope-light min-h-screen;
+    font-size: calc(1rem * var(--text-scale));
     margin: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

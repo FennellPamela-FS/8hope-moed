@@ -55,7 +55,7 @@ export function Favorites() {
                       <p className="font-heading font-bold text-hope-blue text-sm">
                         {fav.book} {fav.chapter}:{fav.verse}
                       </p>
-                      <span className="text-[10px] bg-gray-100 text-gray-500 rounded-full px-2 py-0.5 font-heading">
+                      <span className="text-3xs bg-gray-100 text-gray-500 rounded-full px-2 py-0.5 font-heading">
                         {fav.bible_version}
                       </span>
                     </div>

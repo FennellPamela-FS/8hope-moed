@@ -78,7 +78,7 @@ export function PrayerWatchBanner() {
         {/* AXIOS anchor for this watch */}
         {anchor && (
           <div className="mt-3 rounded-xl bg-black/15 px-3 py-2">
-            <p className="text-white/70 text-[10px] font-heading font-semibold uppercase tracking-wider mb-0.5">
+            <p className="text-white/70 text-3xs font-heading font-semibold uppercase tracking-wider mb-0.5">
               {anchor.axios_words?.relation === 'given'
                 ? `Praying for ${anchor.axios_words.given_to ?? 'them'} · ${anchor.title}`
                 : `AXIOS Anchor · ${anchor.title}`}

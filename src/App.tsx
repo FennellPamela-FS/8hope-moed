@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAppStore } from '@/contexts/store'
 import type { UserProfile } from '@/types'
+import { applyTextScale, isTextScale } from '@/lib/textScale'
 
 import { Landing } from '@/pages/Landing'
 import { Login } from '@/pages/auth/Login'
@@ -75,7 +76,10 @@ export default function App() {
       data = created
     }
 
-    if (data) setUser(data as UserProfile)
+    if (data) {
+      setUser(data as UserProfile)
+      if (isTextScale(data.text_scale)) applyTextScale(data.text_scale)
+    }
   }
 
   if (loading) {

@@ -84,7 +84,7 @@ export function Landing({ onEnter }: LandingProps) {
           transition={{ delay: 0.5, duration: 0.9 }}
           className="mt-8 max-w-[17rem]"
         >
-          <p className="text-white/50 font-body text-[15px] italic leading-[1.75]">
+          <p className="text-white/50 font-body text-[calc(0.9375rem*var(--text-scale,1))] italic leading-[1.75]">
             "Have you ever woken at 3am, 4am, or an unusual hour — and wondered why?"
           </p>
           <p className="text-gold-500/60 font-heading font-semibold mt-4 not-italic tracking-wide"

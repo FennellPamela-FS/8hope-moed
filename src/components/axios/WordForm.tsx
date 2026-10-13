@@ -63,7 +63,8 @@ export function WordForm({ initial, saving, submitLabel, onSave, onCancel }: Wor
         ))}
       </div>
       <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title (e.g. Word to AP Pam)" className={INPUT} />
-      <div className="grid grid-cols-2 gap-2">
+      {/* Side by side normally; stacks once larger text makes them too narrow. */}
+      <div className="grid gap-2 grid-cols-[repeat(auto-fit,minmax(calc(9rem*var(--text-scale,1)),1fr))]">
         {relation === 'given' ? (
           <input value={givenTo} onChange={(e) => setGivenTo(e.target.value)} placeholder="Given to (e.g. Dr. Anita)" className={INPUT} />
         ) : (

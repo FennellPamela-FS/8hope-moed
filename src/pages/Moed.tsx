@@ -127,7 +127,7 @@ export function Moed() {
             transition={{ delay: 0.1 }}
             className="card bg-gold-500/5 border-gold-500/20 text-center"
           >
-            <p className="uppercase text-[10px] font-heading font-semibold text-gold-600 tracking-widest mb-1">
+            <p className="uppercase text-3xs font-heading font-semibold text-gold-600 tracking-widest mb-1">
               The Biblical Meaning of Month {month} · {moedContent.month_numerology.theme}
             </p>
             <p className="text-hope-gray/70 text-xs font-body leading-relaxed">

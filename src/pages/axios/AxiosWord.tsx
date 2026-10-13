@@ -198,7 +198,7 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-heading font-semibold text-gold-600 uppercase tracking-widest">Anchor {i + 1}</p>
+                  <p className="text-3xs font-heading font-semibold text-gold-600 uppercase tracking-widest">Anchor {i + 1}</p>
                   <h3 className="font-heading font-bold text-hope-blue">{anchor.title}</h3>
                 </div>
                 <div className="flex gap-1 shrink-0">
@@ -242,7 +242,7 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
       {/* Application */}
       {word.application && !editingWord && (
         <div className="card bg-gold-500/5 border-gold-500/20">
-          <p className="text-[10px] font-heading font-semibold text-gold-600 uppercase tracking-widest mb-2">Walking It Out</p>
+          <p className="text-3xs font-heading font-semibold text-gold-600 uppercase tracking-widest mb-2">Walking It Out</p>
           <FormattedText text={word.application} />
         </div>
       )}
@@ -268,7 +268,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-3">
       <div className="w-0.5 h-3.5 rounded-full bg-gold-500" />
-      <h3 className="font-heading text-[10px] font-semibold text-hope-gray/50 uppercase tracking-widest">
+      <h3 className="font-heading text-3xs font-semibold text-hope-gray/50 uppercase tracking-widest">
         {children}
       </h3>
     </div>
