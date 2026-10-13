@@ -14,10 +14,16 @@
     "@supabase/supabase-js": "^2.111.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.43.0",
+    "katex": "^0.18.11",
     "lucide-react": "^1.27.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.18.1",
+    "rehype-katex": "^7.0.1",
+    "remark-breaks": "^4.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
     "tailwind-merge": "^3.6.0",
     "zustand": "^5.0.14"
   },
@@ -34,5 +40,8 @@
     "typescript": "~6.0.2",
     "vite": "^8.1.1",
     "vite-plugin-pwa": "^1.3.0"
+  },
+  "overrides": {
+    "katex": "$katex"
   }
 }

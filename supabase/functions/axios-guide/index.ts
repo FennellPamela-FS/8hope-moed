@@ -149,7 +149,8 @@ function isValidGuide(parsed: unknown): parsed is { days: GuideDay[] } {
 }
 
 async function generateGuide(prompt: string, apiKey: string): Promise<{ days: GuideDay[] } | null> {
-  for (let attempt = 1; attempt <= 2; attempt++) {
+  let lowThinking = true
+  for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
         method: 'POST',
@@ -158,16 +159,23 @@ async function generateGuide(prompt: string, apiKey: string): Promise<{ days: Gu
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 8192,
+            // Thinking tokens share this budget (and bill as output); with
+            // 8k they could crowd out the answer and truncate the JSON.
+            maxOutputTokens: 32768,
             responseMimeType: 'application/json',
+            ...(lowThinking ? { thinkingConfig: { thinkingLevel: 'low' } } : {}),
           },
         }),
       })
       if (!res.ok) {
-        console.error('gemini error', res.status, (await res.text()).slice(0, 500))
+        const detail = (await res.text()).slice(0, 500)
+        console.error('gemini error', res.status, detail)
+        // Older/other models reject thinkingLevel — retry without it.
+        if (res.status === 400 && lowThinking && /thinking/i.test(detail)) lowThinking = false
         continue
       }
       const data = await res.json()
+      console.log('gemini usage', JSON.stringify({ finish: data.candidates?.[0]?.finishReason, ...data.usageMetadata }))
       const raw = data.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? '').join('') ?? ''
       const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
       const parsed = JSON.parse(cleaned)

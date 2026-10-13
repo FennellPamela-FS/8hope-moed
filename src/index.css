@@ -72,6 +72,27 @@
   .safe-top {
     padding-top: env(safe-area-inset-top, 0);
   }
+
+  /* Formatted (Markdown) text in AXIOS words — see RichText.tsx */
+  .axios-prose {
+    @apply font-body text-hope-gray text-sm leading-relaxed space-y-3 break-words;
+  }
+  .axios-prose h1, .axios-prose h2, .axios-prose h3, .axios-prose h4 {
+    @apply font-heading font-bold text-hope-blue leading-snug pt-2;
+  }
+  .axios-prose h1 { @apply text-lg; }
+  .axios-prose h2 { @apply text-base; }
+  .axios-prose h3, .axios-prose h4 { @apply text-sm; }
+  .axios-prose strong { @apply font-semibold text-hope-blue; }
+  .axios-prose ul { @apply list-disc pl-5 space-y-1.5; }
+  .axios-prose ol { @apply list-decimal pl-5 space-y-1.5; }
+  .axios-prose blockquote { @apply border-l-4 border-gold-500/40 pl-3 italic text-hope-gray/80; }
+  .axios-prose hr { @apply border-gray-200; }
+  .axios-prose a { @apply text-gold-600 underline; }
+  .axios-prose table { @apply w-full text-xs border-collapse block overflow-x-auto; }
+  .axios-prose th, .axios-prose td { @apply border border-gray-200 px-2 py-1 text-left; }
+  .axios-prose .katex-display { @apply overflow-x-auto overflow-y-hidden py-1; }
+  .axios-prose-sm { @apply text-xs text-hope-gray/70 space-y-2; }
 }
 
 @layer utilities {

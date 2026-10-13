@@ -4,6 +4,7 @@ import { X, RotateCcw, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { formatRef, nextReview } from '@/lib/axios-content'
 import type { AxiosAnchor } from '@/types'
+import { FormattedText } from './FormattedText'
 
 interface FlashcardsProps {
   anchors: AxiosAnchor[]
@@ -85,7 +86,7 @@ export function Flashcards({ anchors, onUpdate, onClose }: FlashcardsProps) {
                       </p>
                     )}
                     {card.explanation && (
-                      <p className="text-hope-gray/70 text-sm font-body leading-relaxed">{card.explanation}</p>
+                      <FormattedText text={card.explanation} className="axios-prose text-hope-gray/70" />
                     )}
                   </>
                 )}

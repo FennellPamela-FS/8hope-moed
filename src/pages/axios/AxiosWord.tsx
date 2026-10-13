@@ -9,6 +9,8 @@ import { AnchorEditor, type AnchorDraft } from '@/components/axios/AnchorEditor'
 import { WordForm, type WordDraft } from '@/components/axios/WordForm'
 import { MeditationGuide } from '@/components/axios/MeditationGuide'
 import { ConfirmDeleteDialog } from '@/components/axios/ConfirmDeleteDialog'
+import { FormattedText } from '@/components/axios/FormattedText'
+import { SuggestAnchors } from '@/components/axios/SuggestAnchors'
 import { useAppStore } from '@/contexts/store'
 import { supabase } from '@/lib/supabase'
 import { localDateString } from '@/lib/axios-content'
@@ -149,7 +151,7 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
           </div>
           {word.full_text && (
             <div className="card">
-              <p className="font-body text-hope-gray text-sm leading-relaxed whitespace-pre-line">{word.full_text}</p>
+              <FormattedText text={word.full_text} collapsible />
             </div>
           )}
         </motion.div>
@@ -207,13 +209,22 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
               </div>
               <p className="font-heading font-semibold text-hope-gray text-sm leading-snug">"{anchor.phrase}"</p>
               {anchor.explanation && (
-                <p className="text-hope-gray/70 text-xs font-body leading-relaxed">{anchor.explanation}</p>
+                <FormattedText text={anchor.explanation} className="axios-prose axios-prose-sm" />
               )}
               {anchor.verse_refs.map((ref) => (
                 <ScriptureVerse key={`${ref.book}${ref.chapter}${ref.verse}`} verseRef={ref} variant="inline" />
               ))}
             </motion.div>
           ),
+        )}
+
+        {word.full_text && (
+          <SuggestAnchors
+            wordId={wordId}
+            userId={userId}
+            nextPosition={anchors.reduce((max, a) => Math.max(max, a.position), 0) + 1}
+            onAdded={(added) => setAnchors((list) => [...list, ...added])}
+          />
         )}
 
         {editingAnchorId === 'new' ? (
@@ -229,7 +240,7 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
       {word.application && !editingWord && (
         <div className="card bg-gold-500/5 border-gold-500/20">
           <p className="text-[10px] font-heading font-semibold text-gold-600 uppercase tracking-widest mb-2">Walking It Out</p>
-          <p className="font-body text-hope-gray text-sm leading-relaxed whitespace-pre-line">{word.application}</p>
+          <FormattedText text={word.application} />
         </div>
       )}
 
