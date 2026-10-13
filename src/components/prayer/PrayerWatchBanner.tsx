@@ -5,7 +5,9 @@ import { useAppStore } from '@/contexts/store'
 import { supabase } from '@/lib/supabase'
 import type { AxiosAnchor } from '@/types'
 
-type BannerAnchor = Pick<AxiosAnchor, 'id' | 'title' | 'phrase'>
+type BannerAnchor = Pick<AxiosAnchor, 'id' | 'title' | 'phrase'> & {
+  axios_words: { relation: 'over_me' | 'given'; given_to: string | null } | null
+}
 
 export function PrayerWatchBanner() {
   const { activeWatch, hebrewDate, user } = useAppStore()
@@ -18,10 +20,12 @@ export function PrayerWatchBanner() {
     if (!axiosActive || !user) return
     supabase
       .from('axios_anchors')
-      .select('id, title, phrase')
+      .select('id, title, phrase, axios_words(relation, given_to)')
       .eq('user_id', user.id)
       .order('created_at')
-      .then(({ data }) => setAnchors((data as BannerAnchor[]) ?? []))
+      // axios_words is many-to-one, so it comes back as an object; the
+      // untyped client infers an array, hence the cast.
+      .then(({ data }) => setAnchors((data as unknown as BannerAnchor[]) ?? []))
   }, [axiosActive, user])
 
   if (!activeWatch) return null
@@ -75,7 +79,9 @@ export function PrayerWatchBanner() {
         {anchor && (
           <div className="mt-3 rounded-xl bg-black/15 px-3 py-2">
             <p className="text-white/70 text-[10px] font-heading font-semibold uppercase tracking-wider mb-0.5">
-              AXIOS Anchor · {anchor.title}
+              {anchor.axios_words?.relation === 'given'
+                ? `Praying for ${anchor.axios_words.given_to ?? 'them'} · ${anchor.title}`
+                : `AXIOS Anchor · ${anchor.title}`}
             </p>
             <p className="text-white text-xs font-heading font-semibold leading-snug">"{anchor.phrase}"</p>
           </div>

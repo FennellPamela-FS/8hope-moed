@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import { Loader2, Sparkles, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
-import type { AxiosAnchor, AxiosGuide } from '@/types'
+import type { AxiosAnchor, AxiosGuide, AxiosWordRelation } from '@/types'
 
 interface MeditationGuideProps {
   wordId: string
   anchors: AxiosAnchor[]
+  relation: AxiosWordRelation
+  givenTo: string | null
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -18,7 +20,7 @@ const ERROR_MESSAGES: Record<string, string> = {
  * The word's 7-day meditation guide. Generated once by the axios-guide edge
  * function and saved; offered for refresh only after the anchors change.
  */
-export function MeditationGuide({ wordId, anchors }: MeditationGuideProps) {
+export function MeditationGuide({ wordId, anchors, relation, givenTo }: MeditationGuideProps) {
   const [guide, setGuide] = useState<AxiosGuide | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [generating, setGenerating] = useState(false)
@@ -40,6 +42,7 @@ export function MeditationGuide({ wordId, anchors }: MeditationGuideProps) {
   }, [wordId])
 
   const stale = !!guide && (
+    guide.relation !== relation ||
     guide.anchor_count !== anchors.length ||
     anchors.some((a) => Date.parse(a.updated_at) > Date.parse(guide.generated_at))
   )
@@ -70,7 +73,9 @@ export function MeditationGuide({ wordId, anchors }: MeditationGuideProps) {
         <div>
           <h3 className="font-heading font-bold text-hope-blue">7-Day Meditation Guide</h3>
           <p className="text-hope-gray/60 text-xs font-body mt-1">
-            A week of meditation, declaration, and prayer through your anchors, built on Romans 8.
+            {relation === 'given'
+              ? `A week of remembering, declaring, and interceding over the word you gave${givenTo ? ` ${givenTo}` : ''}, built on Romans 8.`
+              : 'A week of meditation, declaration, and prayer through your anchors, built on Romans 8.'}
           </p>
         </div>
         {error && <p className="text-red-500 text-xs">{error}</p>}
@@ -92,7 +97,9 @@ export function MeditationGuide({ wordId, anchors }: MeditationGuideProps) {
     <div className="space-y-3">
       {stale && (
         <div className="card bg-gold-500/5 border-gold-500/20 flex items-center justify-between gap-3">
-          <p className="text-hope-gray/80 text-xs font-body">Your anchors changed since this guide was written.</p>
+          <p className="text-hope-gray/80 text-xs font-body">
+            {guide.relation !== relation ? 'This word changed between "over me" and "given" since this guide was written.' : 'Your anchors changed since this guide was written.'}
+          </p>
           <button
             onClick={generate}
             disabled={generating}

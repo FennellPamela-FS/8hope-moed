@@ -58,6 +58,7 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
   }
 
   const today = localDateString()
+  const whoLine = word.relation === 'given' ? (word.given_to ? `Given to ${word.given_to}` : null) : word.spoken_by
   const due = anchors.filter((a) => a.next_review_on <= today)
 
   async function saveWord(draft: WordDraft) {
@@ -131,11 +132,13 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-gold-500 font-heading text-xs font-semibold uppercase tracking-widest mb-1">Word Over Me</p>
+              <p className="text-gold-500 font-heading text-xs font-semibold uppercase tracking-widest mb-1">
+                {word.relation === 'given' ? 'A Word I Gave' : 'Word Over Me'}
+              </p>
               <h2 className="font-heading text-2xl font-bold text-hope-blue">{word.title}</h2>
-              {(word.spoken_by || word.spoken_on) && (
+              {(whoLine || word.spoken_on) && (
                 <p className="text-hope-gray/60 text-sm mt-1">
-                  {[word.spoken_by, word.spoken_on && new Date(word.spoken_on + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })]
+                  {[whoLine, word.spoken_on && new Date(word.spoken_on + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })]
                     .filter(Boolean).join(' · ')}
                 </p>
               )}
@@ -175,7 +178,7 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
       {anchors.length > 0 && (
         <div>
           <SectionLabel>7-Day Meditation Guide</SectionLabel>
-          <MeditationGuide wordId={wordId} anchors={anchors} />
+          <MeditationGuide wordId={wordId} anchors={anchors} relation={word.relation} givenTo={word.given_to} />
         </div>
       )}
 

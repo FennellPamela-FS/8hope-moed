@@ -76,7 +76,11 @@ async function fetchKjv(path: string, apiKey: string): Promise<{ reference: stri
   }
 }
 
+/** Who the guide is written for: the one the word was spoken over, or the one who gave it. */
+interface Relation { relation: 'over_me' | 'given'; givenTo: string | null }
+
 function buildPrompt(
+  rel: Relation,
   wordTitle: string,
   wordText: string | null,
   application: string | null,
@@ -96,9 +100,20 @@ function buildPrompt(
     ${verses || '(none attached)'}`
   }).join('\n\n')
 
-  return `You are writing a 7-day meditation and prayer guide for AXIOS, a section of a Christian devotional app where a believer meditates on a personal prophetic word spoken over them and walks it out.
+  const recipient = rel.givenTo || 'the person who received it'
+  const framing = rel.relation === 'given'
+    ? `You are writing a 7-day remembrance and intercession guide for AXIOS, a section of a Christian devotional app. This word was NOT spoken over the user — it is a prophetic word the user delivered to ${recipient}. The user keeps it to remember what the Lord said to ${recipient}, to pray over them, and to support them as they walk it out.
 
-Write warmly, in second person ("you"), with reverence and conviction. Ground everything in the Scripture provided below. Quote Scripture only from the texts given here, word for word; you may cite other verses from the 66 books of the Bible by reference only. Never invent a quotation.
+Write to the user in second person ("you"), and speak of ${recipient} in the third person. Never write as if the word were spoken over the user. Write warmly, with reverence and conviction.`
+    : `You are writing a 7-day meditation and prayer guide for AXIOS, a section of a Christian devotional app where a believer meditates on a personal prophetic word spoken over them and walks it out.
+
+Write warmly, in second person ("you"), with reverence and conviction.`
+
+  const fieldGuide = rel.relation === 'given'
+    ? `"meditation":"120–200 words on what the Lord said to ${recipient} through this anchor","declaration":"one sentence the user declares over ${recipient}, in the third person","prayer":"60–100 words of intercession for ${recipient}","action_step":"one concrete way to encourage, support, or pray for ${recipient} today"`
+    : `"meditation":"120–200 words","declaration":"one first-person sentence to speak aloud","prayer":"60–100 words","action_step":"one concrete thing to do today"`
+
+  return `${framing} Ground everything in the Scripture provided below. Quote Scripture only from the texts given here, word for word; you may cite other verses from the 66 books of the Bible by reference only. Never invent a quotation.
 
 ROMANS 8 IS THE BASE of AXIOS. Draw on it throughout.
 
@@ -120,11 +135,11 @@ ${romans8}
 
 STRUCTURE:
 - Days 1–6: walk through the anchors in order. Every anchor must be the focus of at least one day; if there are more than 6 anchors, combine related ones; if fewer, give a weightier anchor two days or pair it with a Romans 8 theme.
-- Day 7: bring the whole word together under the AXIOS equation — S ≡ L, the walk matching the call — and Romans 8:18.
+- Day 7: bring the whole word together under the AXIOS equation — S ≡ L, the walk matching the call — and Romans 8:18.${rel.relation === 'given' ? ` Frame it as ${recipient}'s walk matching ${recipient}'s call, and the user standing with them.` : ''}
 - Each day ties its anchor to a specific part of Romans 8.
 
 Return ONLY JSON, no markdown, in exactly this shape:
-{"days":[{"day":1,"title":"short title","anchors":["anchor title(s) this day covers"],"scriptures":["Romans 8:18","Nehemiah 2:8"],"meditation":"120–200 words","declaration":"one first-person sentence to speak aloud","prayer":"60–100 words","action_step":"one concrete thing to do today"}]}
+{"days":[{"day":1,"title":"short title","anchors":["anchor title(s) this day covers"],"scriptures":["Romans 8:18","Nehemiah 2:8"],${fieldGuide}}]}
 with exactly 7 days, numbered 1–7.`
 }
 
@@ -213,7 +228,7 @@ serve(async (req) => {
   // RLS returns nothing unless this is the caller's own word and their
   // account has AXIOS enabled.
   const [{ data: word }, { data: anchorRows }, { data: existing }] = await Promise.all([
-    supabase.from('axios_words').select('id, title, full_text, application').eq('id', wordId).maybeSingle(),
+    supabase.from('axios_words').select('id, title, full_text, application, relation, given_to').eq('id', wordId).maybeSingle(),
     supabase.from('axios_anchors').select('title, phrase, explanation, verse_refs, updated_at').eq('word_id', wordId).order('position'),
     supabase.from('axios_guides').select('*').eq('word_id', wordId).maybeSingle(),
   ])
@@ -223,6 +238,7 @@ serve(async (req) => {
   if (anchors.length === 0) return jsonResponse({ error: 'no_anchors' }, 400)
 
   const stale = !existing ||
+    existing.relation !== word.relation ||
     existing.anchor_count !== anchors.length ||
     anchors.some((a) => Date.parse(a.updated_at) > Date.parse(existing.generated_at))
   if (!stale) return jsonResponse({ guide: existing, source: 'cache' })
@@ -247,7 +263,7 @@ serve(async (req) => {
     if (v) anchorScripture.set(id, `${v.reference}: "${v.text}"`)
   })
 
-  const prompt = buildPrompt(word.title, word.full_text, word.application, anchors, romans8.text, foundation, anchorScripture)
+  const prompt = buildPrompt({ relation: word.relation, givenTo: word.given_to }, word.title, word.full_text, word.application, anchors, romans8.text, foundation, anchorScripture)
   const generated = await generateGuide(prompt, GEMINI_API_KEY)
   if (!generated) return jsonResponse({ error: 'generation_failed' }, 502)
 
@@ -258,6 +274,7 @@ serve(async (req) => {
       user_id: user.id,
       days: generated.days,
       anchor_count: anchors.length,
+      relation: word.relation,
       model: MODEL,
       generated_at: new Date().toISOString(),
     }, { onConflict: 'word_id' })

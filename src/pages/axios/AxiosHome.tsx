@@ -137,24 +137,14 @@ function AxiosContent({ userId }: { userId: string }) {
         {words === null ? (
           <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 text-gold-500 animate-spin" /></div>
         ) : (
-          words.map((w) => (
-            <button
-              key={w.id}
-              onClick={() => navigate(`/axios/${w.id}`)}
-              className="w-full card flex items-center justify-between group text-left hover:shadow-md transition-all active:scale-[0.99]"
-            >
-              <div className="min-w-0">
-                <p className="font-heading font-bold text-hope-blue text-sm">{w.title}</p>
-                {(w.spoken_by || w.spoken_on) && (
-                  <p className="text-hope-gray/50 text-xs mt-0.5">
-                    {[w.spoken_by, w.spoken_on && new Date(w.spoken_on + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })]
-                      .filter(Boolean).join(' · ')}
-                  </p>
-                )}
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gold-500 shrink-0 ml-2" />
-            </button>
-          ))
+          <WordList words={words.filter((w) => w.relation !== 'given')} onOpen={(id) => navigate(`/axios/${id}`)} />
+        )}
+
+        {words?.some((w) => w.relation === 'given') && (
+          <div className="pt-2 space-y-3">
+            <SectionLabel>Words I've Given</SectionLabel>
+            <WordList words={words.filter((w) => w.relation === 'given')} onOpen={(id) => navigate(`/axios/${id}`)} />
+          </div>
         )}
 
         {adding ? (
@@ -174,6 +164,32 @@ function AxiosContent({ userId }: { userId: string }) {
 
       <PrivacyControls userId={userId} />
     </div>
+  )
+}
+
+function WordList({ words, onOpen }: { words: AxiosWord[]; onOpen: (id: string) => void }) {
+  return (
+    <>
+      {words.map((w) => {
+        const who = w.relation === 'given' ? (w.given_to ? `Given to ${w.given_to}` : null) : w.spoken_by
+        const when = w.spoken_on && new Date(w.spoken_on + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        return (
+          <button
+            key={w.id}
+            onClick={() => onOpen(w.id)}
+            className="w-full card flex items-center justify-between group text-left hover:shadow-md transition-all active:scale-[0.99]"
+          >
+            <div className="min-w-0">
+              <p className="font-heading font-bold text-hope-blue text-sm">{w.title}</p>
+              {(who || when) && (
+                <p className="text-hope-gray/50 text-xs mt-0.5">{[who, when].filter(Boolean).join(' · ')}</p>
+              )}
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gold-500 shrink-0 ml-2" />
+          </button>
+        )
+      })}
+    </>
   )
 }
 

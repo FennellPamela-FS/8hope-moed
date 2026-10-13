@@ -48,14 +48,22 @@ function jsonResponse(body: unknown, status = 200): Response {
   })
 }
 
-function buildPrompt(title: string, text: string, application: string | null): string {
-  return `You help a believer turn a personal prophetic word spoken over them into "anchors" for AXIOS, a Christian devotional app. An anchor is one core point of the word that they will memorize, meditate on, and walk out. Romans 8 is the base of AXIOS (Romans 8:18 foundational; Ephesians 4:1 and Galatians 2:20 are anchor verses).
+function buildPrompt(title: string, text: string, application: string | null, relation: string, givenTo: string | null): string {
+  const recipient = givenTo || 'the person who received it'
+  const framing = relation === 'given'
+    ? `You help a believer turn a prophetic word THEY DELIVERED to ${recipient} into "anchors" for AXIOS, a Christian devotional app. The word was not spoken over the user; they keep it to remember what the Lord said to ${recipient}, to pray over them, and to support them. An anchor is one core point of the word that the user will remember and intercede over.`
+    : `You help a believer turn a personal prophetic word spoken over them into "anchors" for AXIOS, a Christian devotional app. An anchor is one core point of the word that they will memorize, meditate on, and walk out.`
+  const phraseRule = relation === 'given'
+    ? `one line to remember about ${recipient}, in the third person (e.g. "${recipient} is called to build without bleeding."), under 20 words, drawn from the word. Never first person.`
+    : `one first-person line to memorize, under 20 words, drawn from the word.`
+
+  return `${framing} Romans 8 is the base of AXIOS (Romans 8:18 foundational; Ephesians 4:1 and Galatians 2:20 are anchor verses).
 
 Read the word below and return 3 to 8 anchors — the distinct, central declarations, mandates, or identities it speaks. Keep the speaker's own language and terms. Do not merge unrelated points or invent points that are not in the word.
 
 For each anchor:
 - "title": a short name (2–6 words), e.g. "The Nehemiah Mandate".
-- "phrase": one first-person line to memorize, under 20 words, drawn from the word.
+- "phrase": ${phraseRule}
 - "explanation": 1–3 sentences on what the word says about this point.
 - "verse_refs": 1–3 Bible verses that genuinely support it — use a verse the word itself cites when there is one; otherwise choose from the 66 books. Use these book codes only: ${USFM_BOOKS.join(', ')}.
 
@@ -164,14 +172,14 @@ serve(async (req) => {
   // RLS: only the caller's own word, and only for AXIOS members.
   const { data: word } = await supabase
     .from('axios_words')
-    .select('title, full_text, application')
+    .select('title, full_text, application, relation, given_to')
     .eq('id', wordId)
     .maybeSingle()
   if (!word) return jsonResponse({ error: 'not_found' }, 404)
   if (!word.full_text || word.full_text.trim().length < 40) return jsonResponse({ error: 'no_text' }, 400)
 
   const text = word.full_text.slice(0, MAX_WORD_CHARS)
-  const suggestions = await suggest(buildPrompt(word.title, text, word.application), Deno.env.get('GEMINI_API_KEY') ?? '')
+  const suggestions = await suggest(buildPrompt(word.title, text, word.application, word.relation, word.given_to), Deno.env.get('GEMINI_API_KEY') ?? '')
   if (!suggestions) return jsonResponse({ error: 'generation_failed' }, 502)
 
   const BIBLE_API_KEY = Deno.env.get('BIBLE_API_KEY') ?? ''

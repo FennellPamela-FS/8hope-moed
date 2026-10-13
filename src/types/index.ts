@@ -146,10 +146,14 @@ export interface ChurchLicense {
 
 // ─── AXIOS ───────────────────────────────────────────────────────────────────
 
+export type AxiosWordRelation = 'over_me' | 'given'
+
 export interface AxiosWord {
   id: string
   user_id: string
   title: string
+  relation: AxiosWordRelation   // spoken over me, or a word I gave
+  given_to: string | null
   spoken_by: string | null
   spoken_on: string | null      // YYYY-MM-DD
   full_text: string | null
@@ -204,6 +208,7 @@ export interface AxiosGuide {
   user_id: string
   days: AxiosGuideDay[]
   anchor_count: number
+  relation: AxiosWordRelation
   model: string
   generated_at: string
 }
