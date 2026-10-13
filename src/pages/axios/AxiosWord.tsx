@@ -8,6 +8,7 @@ import { Flashcards } from '@/components/axios/Flashcards'
 import { AnchorEditor, type AnchorDraft } from '@/components/axios/AnchorEditor'
 import { WordForm, type WordDraft } from '@/components/axios/WordForm'
 import { MeditationGuide } from '@/components/axios/MeditationGuide'
+import { ConfirmDeleteDialog } from '@/components/axios/ConfirmDeleteDialog'
 import { useAppStore } from '@/contexts/store'
 import { supabase } from '@/lib/supabase'
 import { localDateString } from '@/lib/axios-content'
@@ -35,6 +36,8 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
   const [editingAnchorId, setEditingAnchorId] = useState<string | 'new' | null>(null)
   const [saving, setSaving] = useState(false)
   const [memorizing, setMemorizing] = useState<AxiosAnchor[] | null>(null)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -70,9 +73,14 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
   }
 
   async function deleteWord() {
-    if (!window.confirm(`Delete "${word!.title}" and all its anchors? This cannot be undone.`)) return
+    setDeleting(true)
     const { error } = await supabase.from('axios_words').delete().eq('id', wordId)
-    if (!error) navigate('/axios', { replace: true })
+    setDeleting(false)
+    if (error) {
+      window.alert('Could not delete this word. Please try again.')
+      return
+    }
+    navigate('/axios', { replace: true })
   }
 
   async function saveAnchor(draft: AnchorDraft) {
@@ -134,7 +142,7 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
               <button onClick={() => setEditingWord(true)} className="p-2 rounded-xl text-gray-400 hover:text-hope-blue hover:bg-hope-blue/10" aria-label="Edit word">
                 <Pencil className="w-4 h-4" />
               </button>
-              <button onClick={deleteWord} className="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50" aria-label="Delete word">
+              <button onClick={() => setConfirmingDelete(true)} className="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50" aria-label="Delete word">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
@@ -223,6 +231,16 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
           <p className="text-[10px] font-heading font-semibold text-gold-600 uppercase tracking-widest mb-2">Walking It Out</p>
           <p className="font-body text-hope-gray text-sm leading-relaxed whitespace-pre-line">{word.application}</p>
         </div>
+      )}
+
+      {confirmingDelete && (
+        <ConfirmDeleteDialog
+          title={`Delete "${word.title}"?`}
+          items={['The full word and how you walk it out', `All ${anchors.length} anchors and their verses`, 'Its 7-day meditation guide', 'Flashcard progress for this word']}
+          busy={deleting}
+          onConfirm={deleteWord}
+          onCancel={() => setConfirmingDelete(false)}
+        />
       )}
 
       {memorizing && (

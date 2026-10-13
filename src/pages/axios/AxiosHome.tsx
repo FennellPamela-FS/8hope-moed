@@ -7,6 +7,7 @@ import { BibleVersionPicker } from '@/components/meditation/BibleVersionPicker'
 import { ScriptureVerse } from '@/components/axios/ScriptureVerse'
 import { WalkCheckin } from '@/components/axios/WalkCheckin'
 import { WordForm, type WordDraft } from '@/components/axios/WordForm'
+import { ConfirmDeleteDialog } from '@/components/axios/ConfirmDeleteDialog'
 import { useAppStore } from '@/contexts/store'
 import { supabase } from '@/lib/supabase'
 import { fetchChapter } from '@/lib/bible'
@@ -247,13 +248,12 @@ function PrivacyControls({ userId }: { userId: string }) {
   const { user, setUser } = useAppStore()
   const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   async function optOut(deleteData: boolean) {
     if (!user) return
-    const message = deleteData
-      ? 'Permanently delete all your AXIOS words, anchors, and check-ins? This cannot be undone.'
-      : 'Opt out of AXIOS? Your words stay saved privately and come back if you opt in again.'
-    if (!window.confirm(message)) return
+    // Deleting is confirmed by the type-DELETE dialog before we get here.
+    if (!deleteData && !window.confirm('Opt out of AXIOS? Your words stay saved privately and come back if you opt in again.')) return
     setBusy(true)
     if (deleteData) {
       const [words, checkins] = await Promise.all([
@@ -276,7 +276,23 @@ function PrivacyControls({ userId }: { userId: string }) {
   return (
     <div className="pt-4 border-t border-gray-200 flex flex-col items-center gap-2 text-xs font-heading">
       <button onClick={() => optOut(false)} disabled={busy} className="text-hope-gray/50 hover:text-hope-gray">Opt out of AXIOS</button>
-      <button onClick={() => optOut(true)} disabled={busy} className="text-red-400 hover:text-red-600">Delete all my AXIOS data</button>
+      <button onClick={() => setConfirmingDelete(true)} disabled={busy} className="text-red-400 hover:text-red-600">Delete all my AXIOS data</button>
+
+      {confirmingDelete && (
+        <ConfirmDeleteDialog
+          title="Delete all your AXIOS data?"
+          items={[
+            'Every word saved over you',
+            'All anchors and their verses',
+            'All 7-day meditation guides',
+            'Your flashcard progress',
+            'Your full walk check-in history',
+          ]}
+          busy={busy}
+          onConfirm={() => optOut(true)}
+          onCancel={() => setConfirmingDelete(false)}
+        />
+      )}
     </div>
   )
 }
