@@ -12,7 +12,10 @@ export const TEXT_SCALES: Array<{ value: TextScale; label: string }> = [
   { value: 115, label: 'Large' },
   { value: 130, label: 'Extra Large' },
   { value: 150, label: 'Largest' },
-  { value: 200, label: 'Maximum (200%)' },
+  // 200% meets WCAG 2.2 SC 1.4.4 (Resize Text). The percentage is kept out
+  // of the visible label on purpose, for dignity: no one choosing the
+  // largest size should have a number on screen announcing it.
+  { value: 200, label: 'Maximum' },
 ]
 
 const STORAGE_KEY = '8hope-text-scale'
