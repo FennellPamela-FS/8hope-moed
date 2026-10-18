@@ -1,16 +1,46 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Clock, Star } from 'lucide-react'
+import { ChevronDown, ChevronRight, Clock, Star } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { PRAYER_WATCHES, getActiveWatch } from '@/lib/watches'
 import { useAppStore } from '@/contexts/store'
 import { cn } from '@/lib/utils'
-import type { PrayerWatch } from '@/types'
+import { supabase } from '@/lib/supabase'
+import type { PrayerWatch, WatchName } from '@/types'
+
+/** An AXIOS anchor paired with a watch, as shown inside that watch. */
+interface WatchAnchor {
+  watch_key: WatchName
+  reason: string | null
+  axios_anchors: {
+    id: string
+    title: string
+    phrase: string
+    word_id: string
+    axios_words: { title: string; relation: 'over_me' | 'given'; given_to: string | null } | null
+  } | null
+}
 
 export function Watches() {
   const { user, activeWatch } = useAppStore()
   const currentWatch = activeWatch ?? getActiveWatch()
   const [expanded, setExpanded] = useState<string | null>(currentWatch.watch_key)
+  const [watchAnchors, setWatchAnchors] = useState<WatchAnchor[]>([])
+
+  // AXIOS pairings appear only for members who have opted in.
+  const axiosActive = !!user?.axios_enabled && !!user.axios_opted_in_at
+
+  useEffect(() => {
+    if (!axiosActive || !user) return
+    supabase
+      .from('axios_anchor_watches')
+      .select('watch_key, reason, axios_anchors(id, title, phrase, word_id, axios_words(title, relation, given_to))')
+      .eq('user_id', user.id)
+      // Embedded many-to-one relations come back as objects; the untyped
+      // client infers arrays, hence the cast.
+      .then(({ data }) => setWatchAnchors((data as unknown as WatchAnchor[]) ?? []))
+  }, [axiosActive, user])
 
   function toggle(key: string) {
     setExpanded((prev) => (prev === key ? null : key))
@@ -37,6 +67,8 @@ export function Watches() {
               isExpanded={expanded === watch.watch_key}
               isActive={currentWatch.watch_key === watch.watch_key}
               isDivineTime={user?.divine_time_watch === watch.watch_key}
+              axiosActive={axiosActive}
+              anchors={watchAnchors.filter((a) => a.watch_key === watch.watch_key && a.axios_anchors)}
               onToggle={() => toggle(watch.watch_key)}
               delay={i * 0.05}
             />
@@ -57,11 +89,13 @@ interface WatchAccordionProps {
   isExpanded: boolean
   isActive: boolean
   isDivineTime: boolean
+  axiosActive: boolean
+  anchors: WatchAnchor[]
   onToggle: () => void
   delay: number
 }
 
-function WatchAccordion({ watch, isExpanded, isActive, isDivineTime, onToggle, delay }: WatchAccordionProps) {
+function WatchAccordion({ watch, isExpanded, isActive, isDivineTime, axiosActive, anchors, onToggle, delay }: WatchAccordionProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -162,10 +196,48 @@ function WatchAccordion({ watch, isExpanded, isActive, isDivineTime, onToggle, d
                 </p>
               </div>
 
+              {axiosActive && <WatchAxiosAnchors anchors={anchors} />}
+
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </motion.div>
+  )
+}
+
+/** The AXIOS anchors the user paired with this watch. */
+function WatchAxiosAnchors({ anchors }: { anchors: WatchAnchor[] }) {
+  const navigate = useNavigate()
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-heading font-semibold text-gold-600 uppercase tracking-wider">Your AXIOS Anchors</p>
+      {anchors.length === 0 ? (
+        <p className="text-hope-gray/50 text-xs font-body">
+          No anchors paired with this watch yet. Open any AXIOS word and tap "Pair with prayer watches."
+        </p>
+      ) : (
+        anchors.map(({ axios_anchors: a, reason }) => {
+          const word = a!.axios_words
+          return (
+            <button
+              key={a!.id}
+              onClick={() => navigate(`/axios/${a!.word_id}`)}
+              className="w-full text-left rounded-xl border border-gold-500/20 bg-gold-500/5 p-3 flex items-start justify-between gap-2"
+            >
+              <div className="min-w-0">
+                <p className="text-3xs font-heading font-semibold text-hope-gray/50 uppercase tracking-wider">
+                  {word?.relation === 'given' ? `Praying for ${word.given_to ?? 'them'}` : word?.title}
+                </p>
+                <p className="font-heading font-bold text-hope-blue text-sm">{a!.title}</p>
+                <p className="text-hope-gray text-xs font-heading font-semibold leading-snug mt-0.5">"{a!.phrase}"</p>
+                {reason && <p className="text-hope-gray/55 text-xs font-body italic mt-1">{reason}</p>}
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-300 shrink-0 mt-1" />
+            </button>
+          )
+        })
+      )}
+    </div>
   )
 }

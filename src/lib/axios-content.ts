@@ -111,3 +111,17 @@ export function parseRef(input: string): VerseRef | null {
   if (!book) return null
   return { book, chapter: Number(match[2]), verse: Number(match[3]) }
 }
+
+// ─── Anchor rotation (Home AXIOS card) ───────────────────────────────────────
+
+/**
+ * Which anchor to show right now: moves one anchor per day and one per watch.
+ * Someone who always looks at the same hour still sees every anchor in turn
+ * (one new one each day); someone looking through the day sees a different
+ * one each watch. Day count is continuous across years.
+ */
+export function rotatingAnchorIndex(count: number, watchNumber: number, now: Date = new Date()): number {
+  const localMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const dayNumber = Math.round((localMidnight.getTime() - localMidnight.getTimezoneOffset() * 60_000) / 86_400_000)
+  return (dayNumber + watchNumber - 1) % count
+}

@@ -213,3 +213,11 @@ export interface AxiosGuide {
   model: string
   generated_at: string
 }
+
+export interface AxiosAnchorWatch {
+  anchor_id: string
+  user_id: string
+  watch_key: WatchName
+  reason: string | null
+  created_at: string
+}

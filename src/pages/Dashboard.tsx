@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { BookOpen, ChevronRight, PenLine, Bookmark, Scale } from 'lucide-react'
@@ -9,9 +9,11 @@ import { PrayerWatchBanner } from '@/components/prayer/PrayerWatchBanner'
 import { useAppStore } from '@/contexts/store'
 import { getActiveWatch } from '@/lib/watches'
 import { getHebrewDate } from '@/lib/hebrew'
+import { supabase } from '@/lib/supabase'
+import { rotatingAnchorIndex } from '@/lib/axios-content'
 
 export function Dashboard() {
-  const { user, setActiveWatch, setHebrewDate, dailyVerses } = useAppStore()
+  const { user, activeWatch, setActiveWatch, setHebrewDate, dailyVerses } = useAppStore()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -77,28 +79,7 @@ export function Dashboard() {
         {/* AXIOS — enabled accounts only */}
         {user?.axios_enabled && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-            <button
-              onClick={() => navigate('/axios')}
-              className="w-full card flex items-center justify-between group
-                         transition-all duration-200 active:scale-[0.99]
-                         bg-gradient-to-br from-hope-dark to-hope-blue border-0 text-left"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-11 h-11 rounded-xl bg-gold-500/20 flex items-center justify-center shrink-0">
-                  <Scale className="w-5 h-5 text-gold-400" />
-                </div>
-                <div>
-                  <p className="text-gold-400/90 font-heading text-3xs font-semibold uppercase tracking-widest mb-0.5">
-                    Romans 8:18 · Our Anchors
-                  </p>
-                  <h3 className="text-white font-heading font-bold text-base leading-snug tracking-wide">
-                    AXIOS
-                  </h3>
-                  <p className="text-white/50 text-xs mt-0.5">Walk worthy of the word over you</p>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-white/30 group-hover:text-white/70 transition-colors shrink-0 ml-2" />
-            </button>
+            <AxiosCard opted={!!user.axios_opted_in_at} userId={user.id} watchNumber={activeWatch?.watch_number ?? 1} />
           </motion.div>
         )}
 
@@ -142,6 +123,73 @@ export function Dashboard() {
 
       </div>
     </AppShell>
+  )
+}
+
+interface CardAnchor {
+  title: string
+  phrase: string
+  word_id: string
+  axios_words: { relation: 'over_me' | 'given'; given_to: string | null } | null
+}
+
+/**
+ * The AXIOS card. Once the user has opted in, it also shows one rotating
+ * anchor — one new anchor each day and a different one each watch, so every
+ * anchor comes around even for someone who only checks at the same hour.
+ */
+function AxiosCard({ opted, userId, watchNumber }: { opted: boolean; userId: string; watchNumber: number }) {
+  const navigate = useNavigate()
+  const [anchors, setAnchors] = useState<CardAnchor[]>([])
+
+  useEffect(() => {
+    if (!opted) return
+    supabase
+      .from('axios_anchors')
+      .select('title, phrase, word_id, axios_words(relation, given_to)')
+      .eq('user_id', userId)
+      .order('created_at')
+      // axios_words is many-to-one, so it comes back as an object; the
+      // untyped client infers an array, hence the cast.
+      .then(({ data }) => setAnchors((data as unknown as CardAnchor[]) ?? []))
+  }, [opted, userId])
+
+  const anchor = anchors.length > 0 ? anchors[rotatingAnchorIndex(anchors.length, watchNumber)] : null
+
+  return (
+    <div className="card bg-gradient-to-br from-hope-dark to-hope-blue border-0 space-y-3">
+      <button onClick={() => navigate('/axios')} className="w-full flex items-center justify-between group text-left">
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-gold-500/20 flex items-center justify-center shrink-0">
+            <Scale className="w-5 h-5 text-gold-400" />
+          </div>
+          <div>
+            <p className="text-gold-400/90 font-heading text-3xs font-semibold uppercase tracking-widest mb-0.5">
+              Romans 8:18 · Our Anchors
+            </p>
+            <h3 className="text-white font-heading font-bold text-base leading-snug tracking-wide">
+              AXIOS
+            </h3>
+            <p className="text-white/50 text-xs mt-0.5">Walk worthy of the word over you</p>
+          </div>
+        </div>
+        <ChevronRight className="w-4 h-4 text-white/30 group-hover:text-white/70 transition-colors shrink-0 ml-2" />
+      </button>
+
+      {anchor && (
+        <button
+          onClick={() => navigate(`/axios/${anchor.word_id}`)}
+          className="w-full text-left rounded-xl bg-black/20 px-3 py-2.5 active:scale-[0.99] transition-transform"
+        >
+          <p className="text-white/60 text-3xs font-heading font-semibold uppercase tracking-wider mb-0.5">
+            {anchor.axios_words?.relation === 'given'
+              ? `Praying for ${anchor.axios_words.given_to ?? 'them'} · ${anchor.title}`
+              : `Anchor · ${anchor.title}`}
+          </p>
+          <p className="text-white text-sm font-heading font-semibold leading-snug">"{anchor.phrase}"</p>
+        </button>
+      )}
+    </div>
   )
 }
 

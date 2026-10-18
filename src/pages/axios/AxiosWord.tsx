@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Brain, Pencil, Plus, Trash2, Loader2 } from 'lucide-react'
+import { Brain, Clock, Pencil, Plus, Trash2, Loader2 } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { ScriptureVerse } from '@/components/axios/ScriptureVerse'
 import { Flashcards } from '@/components/axios/Flashcards'
@@ -11,10 +11,11 @@ import { MeditationGuide } from '@/components/axios/MeditationGuide'
 import { ConfirmDeleteDialog } from '@/components/axios/ConfirmDeleteDialog'
 import { FormattedText } from '@/components/axios/FormattedText'
 import { SuggestAnchors } from '@/components/axios/SuggestAnchors'
+import { WatchPairingsEditor, AnchorWatchChips } from '@/components/axios/WatchPairings'
 import { useAppStore } from '@/contexts/store'
 import { supabase } from '@/lib/supabase'
 import { localDateString } from '@/lib/axios-content'
-import type { AxiosAnchor, AxiosWord as AxiosWordRow } from '@/types'
+import type { AxiosAnchor, AxiosAnchorWatch, AxiosWord as AxiosWordRow } from '@/types'
 
 export function AxiosWord() {
   const { user } = useAppStore()
@@ -40,15 +41,22 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
   const [memorizing, setMemorizing] = useState<AxiosAnchor[] | null>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [pairings, setPairings] = useState<AxiosAnchorWatch[]>([])
+  const [pairingOpen, setPairingOpen] = useState(false)
 
   useEffect(() => {
     Promise.all([
       supabase.from('axios_words').select('*').eq('id', wordId).maybeSingle(),
       supabase.from('axios_anchors').select('*').eq('word_id', wordId).order('position'),
-    ]).then(([w, a]) => {
+    ]).then(async ([w, a]) => {
       if (!w.data) { setNotFound(true); return }
+      const loaded = (a.data as AxiosAnchor[]) ?? []
       setWord(w.data as AxiosWordRow)
-      setAnchors((a.data as AxiosAnchor[]) ?? [])
+      setAnchors(loaded)
+      if (loaded.length > 0) {
+        const { data } = await supabase.from('axios_anchor_watches').select('*').in('anchor_id', loaded.map((x) => x.id))
+        setPairings((data as AxiosAnchorWatch[]) ?? [])
+      }
     })
   }, [wordId])
 
@@ -174,6 +182,24 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
         </div>
       )}
 
+      {/* Prayer watch pairings */}
+      {anchors.length > 0 && (
+        pairingOpen ? (
+          <WatchPairingsEditor
+            wordId={wordId}
+            userId={userId}
+            anchors={anchors}
+            pairings={pairings}
+            onSaved={(saved) => { setPairings(saved); setPairingOpen(false) }}
+            onClose={() => setPairingOpen(false)}
+          />
+        ) : (
+          <button onClick={() => setPairingOpen(true)} className="btn-outline w-full flex items-center justify-center gap-2 text-sm">
+            <Clock className="w-4 h-4" /> {pairings.length > 0 ? 'Edit watch pairings' : 'Pair with prayer watches'}
+          </button>
+        )
+      )}
+
       {/* 7-day guide */}
       {anchors.length > 0 && (
         <div>
@@ -211,6 +237,7 @@ function WordContent({ userId, wordId }: { userId: string; wordId: string }) {
                 </div>
               </div>
               <p className="font-heading font-semibold text-hope-gray text-sm leading-snug">"{anchor.phrase}"</p>
+              <AnchorWatchChips watchKeys={pairings.filter((p) => p.anchor_id === anchor.id).map((p) => p.watch_key)} />
               {anchor.explanation && (
                 <FormattedText text={anchor.explanation} className="axios-prose axios-prose-sm" />
               )}

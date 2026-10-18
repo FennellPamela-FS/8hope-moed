@@ -1,40 +1,12 @@
-import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Clock } from 'lucide-react'
 import { useAppStore } from '@/contexts/store'
-import { supabase } from '@/lib/supabase'
-import type { AxiosAnchor } from '@/types'
-
-type BannerAnchor = Pick<AxiosAnchor, 'id' | 'title' | 'phrase'> & {
-  axios_words: { relation: 'over_me' | 'given'; given_to: string | null } | null
-}
 
 export function PrayerWatchBanner() {
-  const { activeWatch, hebrewDate, user } = useAppStore()
+  const { activeWatch, hebrewDate } = useAppStore()
   const navigate = useNavigate()
-  const [anchors, setAnchors] = useState<BannerAnchor[]>([])
-
-  const axiosActive = !!user?.axios_enabled && !!user.axios_opted_in_at
-
-  useEffect(() => {
-    if (!axiosActive || !user) return
-    supabase
-      .from('axios_anchors')
-      .select('id, title, phrase, axios_words(relation, given_to)')
-      .eq('user_id', user.id)
-      .order('created_at')
-      // axios_words is many-to-one, so it comes back as an object; the
-      // untyped client infers an array, hence the cast.
-      .then(({ data }) => setAnchors((data as unknown as BannerAnchor[]) ?? []))
-  }, [axiosActive, user])
 
   if (!activeWatch) return null
-
-  // A different AXIOS anchor for each watch, shifting day by day so every
-  // anchor comes around.
-  const anchor = anchors.length > 0
-    ? anchors[(dayOfYear() * 8 + activeWatch.watch_number - 1) % anchors.length]
-    : null
 
   return (
     <button
@@ -74,24 +46,7 @@ export function PrayerWatchBanner() {
             {activeWatch.meditation_prompt}
           </p>
         </div>
-
-        {/* AXIOS anchor for this watch */}
-        {anchor && (
-          <div className="mt-3 rounded-xl bg-black/15 px-3 py-2">
-            <p className="text-white/70 text-3xs font-heading font-semibold uppercase tracking-wider mb-0.5">
-              {anchor.axios_words?.relation === 'given'
-                ? `Praying for ${anchor.axios_words.given_to ?? 'them'} · ${anchor.title}`
-                : `AXIOS Anchor · ${anchor.title}`}
-            </p>
-            <p className="text-white text-xs font-heading font-semibold leading-snug">"{anchor.phrase}"</p>
-          </div>
-        )}
       </div>
     </button>
   )
-}
-
-function dayOfYear(): number {
-  const now = new Date()
-  return Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86_400_000)
 }
