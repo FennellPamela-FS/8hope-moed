@@ -8,12 +8,17 @@ import { useAppStore } from '@/contexts/store'
 import { fetchVerses, getSafeDailyRefs } from '@/lib/bible'
 import { getHebrewDate } from '@/lib/hebrew'
 import { supabase } from '@/lib/supabase'
-import type { MoedDailyContent } from '@/types'
+import { MoedExtrasReview } from '@/components/meditation/MoedExtrasReview'
+import { MoedExtrasIntro } from '@/components/meditation/MoedExtrasIntro'
+import { useMoedExtrasReleased } from '@/hooks/useMoedExtrasReleased'
+import type { MoedDailyContent, MoedExtra } from '@/types'
 import { Loader2 } from 'lucide-react'
 
 export function Moed() {
-  const { bibleVersion, language, hebrewDate, setDailyVerses, dailyVerses, moedContent, setMoedContent } = useAppStore()
+  const { user, bibleVersion, language, hebrewDate, setDailyVerses, dailyVerses, moedContent, setMoedContent } = useAppStore()
   const [loading, setLoading] = useState(false)
+  const [extras, setExtras] = useState<MoedExtra[] | null>(null)
+  const released = useMoedExtrasReleased()
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [showStudy, setShowStudy] = useState(false)
 
@@ -99,6 +104,26 @@ export function Moed() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bibleVersion])
 
+  // Optional Reflection / Deeper Word Study. Reviewers see both while they
+  // are unreleased (marked "Preview"); after release, each user sees what
+  // they switched on in Settings → Moed Content.
+  const reviewer = !!user?.moed_reviewer
+  const reviewing = reviewer && released === false
+  const showReflection = reviewing || (!!released && !!user?.moed_show_reflection)
+  const showDeepStudy = reviewing || (!!released && !!user?.moed_show_deep_study)
+
+  useEffect(() => {
+    setExtras(null)
+    if (!moedContent || moedContent.language !== language || released === null) return
+    if (!showReflection && !showDeepStudy) return
+    let cancelled = false
+    supabase.functions
+      .invoke<{ extras: MoedExtra[] }>('moed-extras', { body: { month, day, language } })
+      .then(({ data }) => { if (!cancelled && data?.extras?.length === 3) setExtras(data.extras) })
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [moedContent, language, released, showReflection, showDeepStudy])
+
   function openStudy(index: number) {
     setSelectedIndex(index)
     setShowStudy(true)
@@ -118,6 +143,9 @@ export function Moed() {
             Hebrew Year {hdate.year} · {today.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
           </p>
         </motion.div>
+
+        {/* One-time introduction after release */}
+        {released && user && !user.moed_extras_intro_seen && <MoedExtrasIntro />}
 
         {/* Month numerology */}
         {!loading && moedContent?.month_numerology && (
@@ -159,6 +187,8 @@ export function Moed() {
                   verse={verse}
                   verseNumber={i + 1}
                   study={moedContent?.verses[i]}
+                  reflection={showReflection ? extras?.[i]?.reflection : undefined}
+                  preview={reviewing}
                   onStudy={() => openStudy(i)}
                 />
               </motion.div>
@@ -180,6 +210,11 @@ export function Moed() {
           </motion.div>
         )}
 
+        {/* Reviewer feedback while the new sections are unreleased */}
+        {reviewing && extras && user && (
+          <MoedExtrasReview userId={user.id} month={month} day={day} language={language} />
+        )}
+
       </div>
 
       {/* AI Study Modal */}
@@ -187,6 +222,8 @@ export function Moed() {
         <VerseStudyModal
           verse={dailyVerses[selectedIndex]}
           study={moedContent?.verses[selectedIndex] ?? null}
+          deepStudy={showDeepStudy ? extras?.[selectedIndex] ?? null : null}
+          preview={reviewing}
           onClose={() => setShowStudy(false)}
         />
       )}

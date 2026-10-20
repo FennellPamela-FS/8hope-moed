@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { logAiUsage } from '../_shared/usage.ts'
 
 /**
  * AXIOS "Pair with watches".
@@ -65,7 +66,7 @@ Return ONLY JSON, no markdown:
 with one entry per anchor.`
 }
 
-async function suggest(prompt: string, apiKey: string): Promise<Pairing[] | null> {
+async function suggest(prompt: string, apiKey: string, userId: string): Promise<Pairing[] | null> {
   let lowThinking = true
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
@@ -89,7 +90,7 @@ async function suggest(prompt: string, apiKey: string): Promise<Pairing[] | null
         continue
       }
       const data = await res.json()
-      console.log('gemini usage', JSON.stringify({ fn: 'axios-pair-watches', finish: data.candidates?.[0]?.finishReason, ...data.usageMetadata }))
+      await logAiUsage({ feature: 'axios-pair-watches', model: MODEL, userId, usage: data.usageMetadata, ok: data.candidates?.[0]?.finishReason === 'STOP' })
       const raw = data.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? '').join('') ?? ''
       const parsed = JSON.parse(raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim())
       if (Array.isArray(parsed?.pairings)) return parsed.pairings as Pairing[]
@@ -132,7 +133,7 @@ serve(async (req) => {
   const anchors = (anchorRows ?? []) as AnchorRow[]
   if (anchors.length === 0) return jsonResponse({ error: 'no_anchors' }, 400)
 
-  const pairings = await suggest(buildPrompt(anchors, word.relation, word.given_to), Deno.env.get('GEMINI_API_KEY') ?? '')
+  const pairings = await suggest(buildPrompt(anchors, word.relation, word.given_to), Deno.env.get('GEMINI_API_KEY') ?? '', user.id)
   if (!pairings) return jsonResponse({ error: 'generation_failed' }, 502)
 
   // Keep only real anchors of this word and real watch keys; at most 2 per anchor.

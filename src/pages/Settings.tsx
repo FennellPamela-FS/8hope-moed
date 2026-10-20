@@ -6,9 +6,11 @@ import { PRAYER_WATCHES } from '@/lib/watches'
 import { LANGUAGES, LANGUAGE_LABELS } from '@/lib/bible'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
-import { LogOut, Bell, ChevronRight, Type } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { LogOut, Bell, ChevronRight, Type, Calculator } from 'lucide-react'
 import { TEXT_SCALES, applyTextScale, type TextScale } from '@/lib/textScale'
 import { TextSizeSheet } from '@/components/settings/TextSizeSheet'
+import { useMoedExtrasReleased } from '@/hooks/useMoedExtrasReleased'
 import type { WatchName } from '@/types'
 import { motion } from 'framer-motion'
 
@@ -22,6 +24,14 @@ export function Settings() {
 
   const textScale = user?.text_scale ?? 100
   const [textSheetOpen, setTextSheetOpen] = useState(false)
+  const navigate = useNavigate()
+  const moedExtrasReleased = useMoedExtrasReleased()
+
+  async function updateMoedPref(key: 'moed_show_reflection' | 'moed_show_deep_study', value: boolean) {
+    if (!user) return
+    setUser({ ...user, [key]: value })
+    await supabase.from('user_profiles').update({ [key]: value }).eq('id', user.id)
+  }
 
   async function updateTextScale(scale: TextScale) {
     if (!user) return
@@ -77,6 +87,48 @@ export function Settings() {
           onChange={updateTextScale}
           onClose={() => setTextSheetOpen(false)}
         />
+
+        {/* Costs & Pricing — internal, admin only */}
+        {user?.is_admin && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.035 }}>
+            <button onClick={() => navigate('/admin/costs')} className="w-full card flex items-center justify-between gap-3 text-left">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-gold-500/15 flex items-center justify-center shrink-0">
+                  <Calculator className="w-4 h-4 text-gold-600" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-heading font-semibold text-hope-blue">Costs & Pricing</h3>
+                  <p className="text-hope-gray/50 text-xs">Internal · only you can see this</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
+            </button>
+          </motion.div>
+        )}
+
+        {/* Moed Content — optional sections; reviewers see it before release */}
+        {(moedExtrasReleased || user?.moed_reviewer) && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 }} className="card space-y-3">
+            <div>
+              <h3 className="font-heading font-semibold text-hope-blue">Moed Content</h3>
+              <p className="text-hope-gray/50 text-xs">
+                {moedExtrasReleased ? 'Optional sections for the daily Moed Meditation.' : 'In review — you see both while reviewing. These switches apply after release.'}
+              </p>
+            </div>
+            <SettingSwitch
+              label="Reflection"
+              description="A few sentences applying each verse to everyday life."
+              checked={!!user?.moed_show_reflection}
+              onChange={(v) => updateMoedPref('moed_show_reflection', v)}
+            />
+            <SettingSwitch
+              label="Deeper Word Study"
+              description="More on each Hebrew or Greek word and where else it appears in Scripture."
+              checked={!!user?.moed_show_deep_study}
+              onChange={(v) => updateMoedPref('moed_show_deep_study', v)}
+            />
+          </motion.div>
+        )}
 
         {/* Language */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="card">
@@ -163,5 +215,29 @@ export function Settings() {
 
       </div>
     </AppShell>
+  )
+}
+
+function SettingSwitch({ label, description, checked, onChange }: {
+  label: string
+  description: string
+  checked: boolean
+  onChange: (value: boolean) => void
+}) {
+  return (
+    <button
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className="w-full flex items-center justify-between gap-3 text-left"
+    >
+      <span className="min-w-0">
+        <span className="block font-heading font-semibold text-hope-gray text-sm">{label}</span>
+        <span className="block text-hope-gray/50 text-xs">{description}</span>
+      </span>
+      <span className={cn('shrink-0 w-11 h-6 rounded-full p-0.5 transition-colors', checked ? 'bg-hope-green' : 'bg-gray-200')}>
+        <span className={cn('block w-5 h-5 rounded-full bg-white shadow transition-transform', checked && 'translate-x-5')} />
+      </span>
+    </button>
   )
 }

@@ -43,6 +43,13 @@ export interface MoedVerseOption {
   prayer_prompt: string
 }
 
+/** Optional Moed sections (Settings → Moed Content), one per daily verse. */
+export interface MoedExtra {
+  reflection: string
+  deep_study: string
+  cross_refs: VerseRef[]        // verified to exist before saving
+}
+
 export interface MoedDailyContent {
   month: number
   day: number
@@ -99,6 +106,13 @@ export interface UserProfile {
   axios_enabled?: boolean
   axios_opted_in_at?: string | null
   text_scale?: number           // percent; see src/lib/textScale.ts
+  // Access flags (admin-set) and Moed display preferences
+  is_admin?: boolean
+  moed_reviewer?: boolean
+  bible_study_enabled?: boolean
+  moed_show_reflection?: boolean
+  moed_show_deep_study?: boolean
+  moed_extras_intro_seen?: boolean
   created_at: string
 }
 
@@ -219,5 +233,59 @@ export interface AxiosAnchorWatch {
   user_id: string
   watch_key: WatchName
   reason: string | null
+  created_at: string
+}
+
+// ─── My Bible Study ──────────────────────────────────────────────────────────
+
+export interface StudyPlan {
+  id: string
+  user_id: string
+  title: string
+  version_label: string         // the Bible the user reads, e.g. 'MEV'
+  created_at: string
+}
+
+export interface StudyPlanBook {
+  id: string
+  plan_id: string
+  user_id: string
+  position: number
+  book: string                  // USFM code
+  lens_name: string | null      // e.g. 'The Lion'
+  lens_focus: string | null
+  total_chapters: number
+  next_chapter: number
+  next_verse: number
+}
+
+export interface StudyEntry {
+  id: string
+  user_id: string
+  plan_id: string
+  book: string
+  entry_date: string            // YYYY-MM-DD
+  start_chapter: number
+  start_verse: number
+  end_chapter: number
+  end_verse: number
+  version_label: string
+  read_text: string | null
+  scribe: string | null
+  pray: string | null
+  ingest: string | null
+  lead: string | null
+  notes: string | null
+  tags: string[]
+  created_at: string
+  updated_at: string
+}
+
+export interface StudyInsight {
+  id: string
+  entry_id: string
+  question: string | null
+  eagle: string
+  lion: string
   created_at: string
 }

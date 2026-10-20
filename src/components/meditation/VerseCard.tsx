@@ -9,6 +9,10 @@ interface VerseCardProps {
   verse: BibleVerse
   verseNumber: number
   study?: MoedVerseOption
+  /** Optional Moed Reflection (Settings → Moed Content). */
+  reflection?: string
+  /** True while the section is still under review (reviewers only). */
+  preview?: boolean
   onStudy: () => void
 }
 
@@ -19,7 +23,7 @@ const BOOK_LABELS: Record<string, string> = {
   EPH: 'Ephesians', PHP: 'Philippians', COL: 'Colossians',
 }
 
-export function VerseCard({ verse, verseNumber, study, onStudy }: VerseCardProps) {
+export function VerseCard({ verse, verseNumber, study, reflection, preview, onStudy }: VerseCardProps) {
   const { user, favorites, addFavorite, removeFavorite } = useAppStore()
   const isSaved = favorites.some(
     (f) => f.book === verse.book && f.chapter === verse.chapter && f.verse === verse.verse
@@ -104,6 +108,16 @@ export function VerseCard({ verse, verseNumber, study, onStudy }: VerseCardProps
           <p className="text-hope-gray/80 text-xs font-body leading-relaxed">
             {study.calendar_connection}
           </p>
+        </div>
+      )}
+
+      {/* Reflection — optional section */}
+      {reflection && (
+        <div className="mb-4 rounded-xl bg-hope-blue/5 border border-hope-blue/10 p-3">
+          <p className="text-3xs font-heading font-semibold text-hope-blue uppercase tracking-wider mb-1">
+            Reflection{preview && <span className="ml-1.5 rounded-full bg-gold-500/15 text-gold-700 px-1.5 py-0.5 normal-case tracking-normal">Preview · under review</span>}
+          </p>
+          <p className="text-hope-gray/85 text-sm font-body leading-relaxed">{reflection}</p>
         </div>
       )}
 

@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { logAiUsage } from '../_shared/usage.ts'
 
 /**
  * AXIOS 7-day meditation guide.
@@ -163,7 +164,7 @@ function isValidGuide(parsed: unknown): parsed is { days: GuideDay[] } {
   })
 }
 
-async function generateGuide(prompt: string, apiKey: string): Promise<{ days: GuideDay[] } | null> {
+async function generateGuide(prompt: string, apiKey: string, userId: string): Promise<{ days: GuideDay[] } | null> {
   let lowThinking = true
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
@@ -190,7 +191,7 @@ async function generateGuide(prompt: string, apiKey: string): Promise<{ days: Gu
         continue
       }
       const data = await res.json()
-      console.log('gemini usage', JSON.stringify({ finish: data.candidates?.[0]?.finishReason, ...data.usageMetadata }))
+      await logAiUsage({ feature: 'axios-guide', model: MODEL, userId, usage: data.usageMetadata, ok: data.candidates?.[0]?.finishReason === 'STOP' })
       const raw = data.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? '').join('') ?? ''
       const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
       const parsed = JSON.parse(cleaned)
@@ -264,7 +265,7 @@ serve(async (req) => {
   })
 
   const prompt = buildPrompt({ relation: word.relation, givenTo: word.given_to }, word.title, word.full_text, word.application, anchors, romans8.text, foundation, anchorScripture)
-  const generated = await generateGuide(prompt, GEMINI_API_KEY)
+  const generated = await generateGuide(prompt, GEMINI_API_KEY, user.id)
   if (!generated) return jsonResponse({ error: 'generation_failed' }, 502)
 
   const { data: saved, error } = await supabase

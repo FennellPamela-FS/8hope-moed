@@ -186,6 +186,47 @@ export async function fetchChapter(
 }
 
 /**
+ * Fetches a passage range (e.g. Mark 8:1–21) as plain text, verse numbers
+ * inline as "[n]".
+ */
+export async function fetchPassage(
+  book: string,
+  startChapter: number,
+  startVerse: number,
+  endChapter: number,
+  endVerse: number,
+  version: BibleVersion = 'KJV'
+): Promise<{ ref: string; text: string; version: BibleVersion }> {
+  await resolveBibleIds()
+
+  const bibleId = getBibleId(version)
+  const passageId = `${book}.${startChapter}.${startVerse}-${book}.${endChapter}.${endVerse}`
+  const url = `${BASE_URL}/bibles/${bibleId}/passages/${passageId}?content-type=text&include-notes=false&include-titles=false&include-verse-numbers=true`
+
+  const res = await fetch(url, { headers: { 'api-key': API_KEY } })
+  if (!res.ok) {
+    throw new Error(`Bible API error ${res.status} for ${passageId}`)
+  }
+
+  const data = (await res.json()).data
+  return {
+    ref: data.reference,
+    text: data.content.replace(/<[^>]+>/g, '').trim(),
+    version,
+  }
+}
+
+/** Number of verses in a chapter (KJV versification). */
+export async function fetchChapterVerseCount(book: string, chapter: number): Promise<number> {
+  await resolveBibleIds()
+  const res = await fetch(`${BASE_URL}/bibles/${getBibleId('KJV')}/chapters/${book}.${chapter}/verses`, {
+    headers: { 'api-key': API_KEY },
+  })
+  if (!res.ok) throw new Error(`Bible API error ${res.status} for ${book}.${chapter}`)
+  return ((await res.json()).data ?? []).length
+}
+
+/**
  * Fetches the Verse of the Day.
  */
 export async function fetchVerseOfTheDay(version: BibleVersion = 'KJV'): Promise<BibleVerse> {

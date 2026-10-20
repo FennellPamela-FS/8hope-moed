@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { BookOpen, ChevronRight, PenLine, Bookmark, Scale } from 'lucide-react'
+import { BookOpen, ChevronRight, PenLine, Bookmark, Scale, NotebookPen } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AppShell } from '@/components/layout/AppShell'
@@ -10,7 +10,7 @@ import { useAppStore } from '@/contexts/store'
 import { getActiveWatch } from '@/lib/watches'
 import { getHebrewDate } from '@/lib/hebrew'
 import { supabase } from '@/lib/supabase'
-import { rotatingAnchorIndex } from '@/lib/axios-content'
+import { BOOK_NAMES, rotatingAnchorIndex } from '@/lib/axios-content'
 
 export function Dashboard() {
   const { user, activeWatch, setActiveWatch, setHebrewDate, dailyVerses } = useAppStore()
@@ -80,6 +80,13 @@ export function Dashboard() {
         {user?.axios_enabled && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
             <AxiosCard opted={!!user.axios_opted_in_at} userId={user.id} watchNumber={activeWatch?.watch_number ?? 1} />
+          </motion.div>
+        )}
+
+        {/* My Bible Study — enabled accounts only */}
+        {user?.bible_study_enabled && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}>
+            <StudyCard userId={user.id} />
           </motion.div>
         )}
 
@@ -190,6 +197,43 @@ function AxiosCard({ opted, userId, watchNumber }: { opted: boolean; userId: str
         </button>
       )}
     </div>
+  )
+}
+
+/** Home card for My Bible Study: where each book picks up next. */
+function StudyCard({ userId }: { userId: string }) {
+  const navigate = useNavigate()
+  const [next, setNext] = useState<string | null>(null)
+
+  useEffect(() => {
+    supabase
+      .from('study_plan_books')
+      .select('book, next_chapter, next_verse, position')
+      .eq('user_id', userId)
+      .order('position')
+      .then(({ data }) => {
+        const rows = (data ?? []) as Array<{ book: string; next_chapter: number; next_verse: number }>
+        setNext(rows.map((r) => `${BOOK_NAMES[r.book] ?? r.book} ${r.next_chapter}:${r.next_verse}`).join(' · ') || null)
+      })
+  }, [userId])
+
+  return (
+    <button
+      onClick={() => navigate('/study')}
+      className="w-full card flex items-center justify-between group text-left hover:shadow-md transition-all duration-200 active:scale-[0.99]"
+    >
+      <div className="flex items-center gap-4">
+        <div className="w-11 h-11 rounded-xl bg-gold-500/15 flex items-center justify-center shrink-0">
+          <NotebookPen className="w-5 h-5 text-gold-600" />
+        </div>
+        <div>
+          <p className="text-gold-600 font-heading text-3xs font-semibold uppercase tracking-widest mb-0.5">The Sovereign Study</p>
+          <h3 className="text-hope-blue font-heading font-bold text-base leading-snug">My Bible Study</h3>
+          <p className="text-hope-gray/50 text-xs mt-0.5">{next ? `Next: ${next}` : 'One page a day, no pressure'}</p>
+        </div>
+      </div>
+      <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gold-500 transition-colors shrink-0 ml-2" />
+    </button>
   )
 }
 

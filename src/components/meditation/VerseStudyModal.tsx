@@ -1,14 +1,19 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Sparkles, BookOpen } from 'lucide-react'
-import type { BibleVerse, MoedVerseOption } from '@/types'
+import { formatRef } from '@/lib/axios-content'
+import type { BibleVerse, MoedExtra, MoedVerseOption } from '@/types'
 
 interface VerseStudyModalProps {
   verse: BibleVerse
   study: MoedVerseOption | null
+  /** Optional Deeper Word Study (Settings → Moed Content). */
+  deepStudy?: MoedExtra | null
+  /** True while the section is still under review (reviewers only). */
+  preview?: boolean
   onClose: () => void
 }
 
-export function VerseStudyModal({ verse, study, onClose }: VerseStudyModalProps) {
+export function VerseStudyModal({ verse, study, deepStudy, preview, onClose }: VerseStudyModalProps) {
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex flex-col">
@@ -89,6 +94,21 @@ export function VerseStudyModal({ verse, study, onClose }: VerseStudyModalProps)
                   </p>
                   <p className="text-hope-gray font-body text-sm leading-relaxed">{study.meaning}</p>
                 </div>
+
+                {/* Deeper Word Study — optional section */}
+                {deepStudy && (
+                  <div className="card border-l-4 border-l-hope-blue">
+                    <p className="text-xs font-heading font-semibold text-hope-blue uppercase tracking-wider mb-2">
+                      Deeper Word Study{preview && <span className="ml-1.5 rounded-full bg-gold-500/15 text-gold-700 px-1.5 py-0.5 text-3xs normal-case tracking-normal">Preview · under review</span>}
+                    </p>
+                    <p className="text-hope-gray font-body text-sm leading-relaxed">{deepStudy.deep_study}</p>
+                    {deepStudy.cross_refs.length > 0 && (
+                      <p className="mt-2 text-xs font-heading font-semibold text-gold-600">
+                        See also: {deepStudy.cross_refs.map(formatRef).join(' · ')}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Calendar connection — only when Gemini found a genuine one */}
                 {study.calendar_connection && (

@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { logAiUsage } from '../_shared/usage.ts'
 
 /**
  * daily-verses Edge Function
@@ -447,6 +448,8 @@ async function generateDevotionalContent(selected: SelectedRef[], language: Lang
       if (!res.ok) continue
 
       const data = await res.json()
+      // Content is cached per day, not per user — no user id to record.
+      await logAiUsage({ feature: 'moed-daily', model: 'gemini-2.5-flash', usage: data.usageMetadata, ok: data.candidates?.[0]?.finishReason === 'STOP' })
       const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
       const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
       const parsed = JSON.parse(cleaned)

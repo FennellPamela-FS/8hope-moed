@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { logAiUsage } from '../_shared/usage.ts'
 
 /**
  * AXIOS "Pull anchors from this word".
@@ -89,7 +90,7 @@ function isValid(parsed: unknown): parsed is { anchors: Suggestion[] } {
   })
 }
 
-async function suggest(prompt: string, apiKey: string): Promise<Suggestion[] | null> {
+async function suggest(prompt: string, apiKey: string, userId: string): Promise<Suggestion[] | null> {
   let lowThinking = true
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
@@ -116,7 +117,7 @@ async function suggest(prompt: string, apiKey: string): Promise<Suggestion[] | n
         continue
       }
       const data = await res.json()
-      console.log('gemini usage', JSON.stringify({ finish: data.candidates?.[0]?.finishReason, ...data.usageMetadata }))
+      await logAiUsage({ feature: 'axios-suggest-anchors', model: MODEL, userId, usage: data.usageMetadata, ok: data.candidates?.[0]?.finishReason === 'STOP' })
       const raw = data.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? '').join('') ?? ''
       const parsed = JSON.parse(raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim())
       if (isValid(parsed)) return parsed.anchors.slice(0, 8)
@@ -179,7 +180,7 @@ serve(async (req) => {
   if (!word.full_text || word.full_text.trim().length < 40) return jsonResponse({ error: 'no_text' }, 400)
 
   const text = word.full_text.slice(0, MAX_WORD_CHARS)
-  const suggestions = await suggest(buildPrompt(word.title, text, word.application, word.relation, word.given_to), Deno.env.get('GEMINI_API_KEY') ?? '')
+  const suggestions = await suggest(buildPrompt(word.title, text, word.application, word.relation, word.given_to), Deno.env.get('GEMINI_API_KEY') ?? '', user.id)
   if (!suggestions) return jsonResponse({ error: 'generation_failed' }, 502)
 
   const BIBLE_API_KEY = Deno.env.get('BIBLE_API_KEY') ?? ''
