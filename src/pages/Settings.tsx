@@ -88,7 +88,7 @@ export function Settings() {
           onClose={() => setTextSheetOpen(false)}
         />
 
-        {/* Costs & Pricing — internal, admin only */}
+        {/* Count the Costs — internal, admin only */}
         {user?.is_admin && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.035 }}>
             <button onClick={() => navigate('/admin/costs')} className="w-full card flex items-center justify-between gap-3 text-left">
@@ -97,7 +97,7 @@ export function Settings() {
                   <Calculator className="w-4 h-4 text-gold-600" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-heading font-semibold text-hope-blue">Costs & Pricing</h3>
+                  <h3 className="font-heading font-semibold text-hope-blue">Count the Costs</h3>
                   <p className="text-hope-gray/50 text-xs">Internal · only you can see this</p>
                 </div>
               </div>

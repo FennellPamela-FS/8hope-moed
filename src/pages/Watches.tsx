@@ -54,7 +54,7 @@ export function Watches() {
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           <p className="text-hope-gray/70 text-sm font-body leading-relaxed">
             The biblical day begins at evening — <span className="italic">"evening and morning was the first day"</span> (Genesis 1).
-            There are 8 prayer watches, each 3 hours long, covering the full 24-hour cycle.
+            There are 8 prayer watches, each 3 hours long, beginning at sundown (6 PM) and covering the full 24-hour cycle.
           </p>
         </motion.div>
 

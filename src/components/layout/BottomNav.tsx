@@ -14,7 +14,7 @@ const NAV_ITEMS = [
 export function BottomNav() {
   return (
     <nav className={cn(
-      'fixed bottom-0 left-0 right-0 z-40',
+      'fixed bottom-0 left-0 right-0 z-40 print:hidden',
       'bg-white border-t border-gray-100 safe-bottom',
       'flex items-center justify-around px-1 pt-1',
     )}

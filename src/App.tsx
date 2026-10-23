@@ -19,7 +19,7 @@ import { AxiosHome } from '@/pages/axios/AxiosHome'
 import { AxiosWord } from '@/pages/axios/AxiosWord'
 import { StudyHome } from '@/pages/study/StudyHome'
 import { StudyEntryPage } from '@/pages/study/StudyEntryPage'
-import { CostsPricing } from '@/pages/admin/CostsPricing'
+import { CountTheCosts } from '@/pages/admin/CountTheCosts'
 
 export default function App() {
   const { user, setUser } = useAppStore()
@@ -119,7 +119,7 @@ export default function App() {
           <Route path="/study"     element={<StudyHome />} />
           <Route path="/study/new/:book" element={<StudyEntryPage />} />
           <Route path="/study/entry/:id" element={<StudyEntryPage />} />
-          <Route path="/admin/costs" element={<CostsPricing />} />
+          <Route path="/admin/costs" element={<CountTheCosts />} />
           <Route path="*"          element={<Navigate to="/" replace />} />
         </Routes>
       )}

@@ -19,16 +19,16 @@ const corsHeaders = {
 const MODEL = 'gemini-3.6-flash'
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`
 
-// Mirrors src/lib/watches.ts.
+// Mirrors src/lib/watches.ts (numbered from 6 PM; keys are tied to the hours).
 const WATCHES = [
-  { key: 'watch_1', label: 'First Watch (3–6 PM)', focus: 'Transition & Preparation', note: 'Release the burdens of the day and prepare the heart for intentional prayer.', scripture: 'Psalm 55:17' },
-  { key: 'watch_2', label: 'Second Watch (6–9 PM)', focus: 'Gratitude & Reflection', note: "Gratitude and reflecting on the day's evidence of God's faithfulness.", scripture: 'Lamentations 2:19' },
-  { key: 'watch_3', label: 'Third Watch (9 PM–12 AM)', focus: 'Intercession & Surrender', note: 'Intercede for others and surrender outcomes you cannot control.', scripture: 'Luke 12:38' },
-  { key: 'watch_4', label: 'Fourth Watch (12–3 AM)', focus: 'Breakthrough & Spiritual Warfare', note: 'Midnight, the deepest watch: spiritual warfare and breakthrough.', scripture: 'Acts 16:25' },
-  { key: 'watch_5', label: 'Fifth Watch (3–6 AM)', focus: 'Divine Encounter & Fresh Fire', note: 'The pre-dawn hour of encounter; listen before speaking.', scripture: 'Mark 1:35' },
-  { key: 'watch_6', label: 'Sixth Watch (6–9 AM)', focus: 'Declaration & New Mercies', note: "Morning: declare God's promises over the day; new mercies.", scripture: 'Lamentations 3:22-23' },
-  { key: 'watch_7', label: 'Seventh Watch (9 AM–12 PM)', focus: 'Assignment & Kingdom Work', note: 'Invite God into the day\'s assignments: wisdom, favor, divine connections.', scripture: 'Matthew 20:3' },
-  { key: 'watch_8', label: 'Eighth Watch (12–3 PM)', focus: 'Perseverance & Midday Strength', note: 'Midday pressure: renew strength and press through.', scripture: 'Isaiah 40:31' },
+  { key: 'watch_1', label: 'Eighth Watch (3–6 PM)', focus: 'Transition & Preparation', note: 'Release the burdens of the day and prepare the heart for intentional prayer.', scripture: 'Psalm 55:17' },
+  { key: 'watch_2', label: 'First Watch (6–9 PM)', focus: 'Gratitude & Reflection', note: "Gratitude and reflecting on the day's evidence of God's faithfulness.", scripture: 'Lamentations 2:19' },
+  { key: 'watch_3', label: 'Second Watch (9 PM–12 AM)', focus: 'Intercession & Surrender', note: 'Intercede for others and surrender outcomes you cannot control.', scripture: 'Luke 12:38' },
+  { key: 'watch_4', label: 'Third Watch (12–3 AM)', focus: 'Breakthrough & Spiritual Warfare', note: 'Midnight, the deepest watch: spiritual warfare and breakthrough.', scripture: 'Acts 16:25' },
+  { key: 'watch_5', label: 'Fourth Watch (3–6 AM)', focus: 'Divine Encounter & Fresh Fire', note: 'The pre-dawn hour of encounter; listen before speaking.', scripture: 'Mark 1:35' },
+  { key: 'watch_6', label: 'Fifth Watch (6–9 AM)', focus: 'Declaration & New Mercies', note: "Morning: declare God's promises over the day; new mercies.", scripture: 'Lamentations 3:22-23' },
+  { key: 'watch_7', label: 'Sixth Watch (9 AM–12 PM)', focus: 'Assignment & Kingdom Work', note: 'Invite God into the day\'s assignments: wisdom, favor, divine connections.', scripture: 'Matthew 20:3' },
+  { key: 'watch_8', label: 'Seventh Watch (12–3 PM)', focus: 'Perseverance & Midday Strength', note: 'Midday pressure: renew strength and press through.', scripture: 'Isaiah 40:31' },
 ]
 const WATCH_KEYS = WATCHES.map((w) => w.key)
 

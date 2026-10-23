@@ -1,35 +1,28 @@
 import type { PrayerWatch, WatchName } from '@/types'
 
 /**
- * The 8 biblical prayer watches.
- * Day begins at 3pm per Genesis 1 — "evening and morning was the first day."
+ * The 8 biblical prayer watches, in order.
+ * The biblical day begins at sundown — "the evening and the morning were the
+ * first day" (Genesis 1:5) — so the First Watch is 6–9 PM, matching the
+ * Roman four-watch night of the Gospels (Mark 13:35; Matthew 14:25's "fourth
+ * watch of the night" = 3–6 AM). Decided by Pamela, Oct 2026.
+ *
+ * NOTE: watch_key is a stable id tied to the HOURS, not the number — the
+ * numbering changed (it used to start at 3 PM), so watch_1 is now the Eighth
+ * Watch (3–6 PM). Never renumber keys: user_profiles.divine_time_watch,
+ * journal_entries.watch_session and axios_anchor_watches store them.
  */
 export const PRAYER_WATCHES: PrayerWatch[] = [
   {
-    id: 'watch_1',
-    watch_key: 'watch_1',
-    watch_number: 1,
-    label: 'First Watch',
-    time_label: '3:00 PM – 6:00 PM',
-    start_hour: 15,
-    end_hour: 18,
-    focus: 'Transition & Preparation',
-    description: 'The day begins. As afternoon shifts to evening, release the burdens of the day and prepare your heart for intentional prayer.',
-    scripture_ref: 'Psalm 55:17',
-    scripture_text: '"Evening, and morning, and at noon, will I pray, and cry aloud: and he shall hear my voice."',
-    meditation_prompt: 'What am I releasing from today? What am I preparing my heart to receive?',
-    color: '#C9A84C',
-  },
-  {
     id: 'watch_2',
     watch_key: 'watch_2',
-    watch_number: 2,
-    label: 'Second Watch',
+    watch_number: 1,
+    label: 'First Watch',
     time_label: '6:00 PM – 9:00 PM',
     start_hour: 18,
     end_hour: 21,
     focus: 'Gratitude & Reflection',
-    description: 'The evening settles. A time for gratitude and reflecting on the day\'s evidence of God\'s faithfulness.',
+    description: 'The biblical day begins at sundown. A time for gratitude and reflecting on the day\'s evidence of God\'s faithfulness.',
     scripture_ref: 'Lamentations 2:19',
     scripture_text: '"Arise, cry out in the night: in the beginning of the watches pour out thine heart like water before the face of the Lord."',
     meditation_prompt: 'What evidence of God\'s faithfulness did I witness today?',
@@ -38,8 +31,8 @@ export const PRAYER_WATCHES: PrayerWatch[] = [
   {
     id: 'watch_3',
     watch_key: 'watch_3',
-    watch_number: 3,
-    label: 'Third Watch',
+    watch_number: 2,
+    label: 'Second Watch',
     time_label: '9:00 PM – 12:00 AM',
     start_hour: 21,
     end_hour: 0,
@@ -53,8 +46,8 @@ export const PRAYER_WATCHES: PrayerWatch[] = [
   {
     id: 'watch_4',
     watch_key: 'watch_4',
-    watch_number: 4,
-    label: 'Fourth Watch',
+    watch_number: 3,
+    label: 'Third Watch',
     time_label: '12:00 AM – 3:00 AM',
     start_hour: 0,
     end_hour: 3,
@@ -68,8 +61,8 @@ export const PRAYER_WATCHES: PrayerWatch[] = [
   {
     id: 'watch_5',
     watch_key: 'watch_5',
-    watch_number: 5,
-    label: 'Fifth Watch',
+    watch_number: 4,
+    label: 'Fourth Watch',
     time_label: '3:00 AM – 6:00 AM',
     start_hour: 3,
     end_hour: 6,
@@ -83,8 +76,8 @@ export const PRAYER_WATCHES: PrayerWatch[] = [
   {
     id: 'watch_6',
     watch_key: 'watch_6',
-    watch_number: 6,
-    label: 'Sixth Watch',
+    watch_number: 5,
+    label: 'Fifth Watch',
     time_label: '6:00 AM – 9:00 AM',
     start_hour: 6,
     end_hour: 9,
@@ -98,8 +91,8 @@ export const PRAYER_WATCHES: PrayerWatch[] = [
   {
     id: 'watch_7',
     watch_key: 'watch_7',
-    watch_number: 7,
-    label: 'Seventh Watch',
+    watch_number: 6,
+    label: 'Sixth Watch',
     time_label: '9:00 AM – 12:00 PM',
     start_hour: 9,
     end_hour: 12,
@@ -113,8 +106,8 @@ export const PRAYER_WATCHES: PrayerWatch[] = [
   {
     id: 'watch_8',
     watch_key: 'watch_8',
-    watch_number: 8,
-    label: 'Eighth Watch',
+    watch_number: 7,
+    label: 'Seventh Watch',
     time_label: '12:00 PM – 3:00 PM',
     start_hour: 12,
     end_hour: 15,
@@ -124,6 +117,21 @@ export const PRAYER_WATCHES: PrayerWatch[] = [
     scripture_text: '"But they that wait upon the LORD shall renew their strength; they shall mount up with wings as eagles."',
     meditation_prompt: 'Where do I need renewed strength right now? What is testing my perseverance?',
     color: '#4A4A4A',
+  },
+  {
+    id: 'watch_1',
+    watch_key: 'watch_1',
+    watch_number: 8,
+    label: 'Eighth Watch',
+    time_label: '3:00 PM – 6:00 PM',
+    start_hour: 15,
+    end_hour: 18,
+    focus: 'Transition & Preparation',
+    description: 'The biblical day draws to its close. As afternoon turns toward evening, release the burdens of the day and prepare your heart for intentional prayer.',
+    scripture_ref: 'Psalm 55:17',
+    scripture_text: '"Evening, and morning, and at noon, will I pray, and cry aloud: and he shall hear my voice."',
+    meditation_prompt: 'What am I releasing from today? What am I preparing my heart to receive?',
+    color: '#C9A84C',
   },
 ]
 

@@ -14,7 +14,7 @@ export function AppShell({ children, showNav = true, showHeader = true, title }:
     <div className="flex flex-col min-h-screen bg-hope-light safe-top">
       {showHeader && <Header title={title} />}
 
-      <main className="flex-1 overflow-y-auto pb-24">
+      <main className="flex-1 overflow-y-auto pb-24 print:pb-0 print:overflow-visible">
         {children}
       </main>
 

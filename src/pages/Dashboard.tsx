@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { BookOpen, ChevronRight, PenLine, Bookmark, Scale, NotebookPen } from 'lucide-react'
+import { BookOpen, ChevronRight, PenLine, Bookmark, Scale, NotebookPen, Calculator } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AppShell } from '@/components/layout/AppShell'
@@ -11,6 +11,7 @@ import { getActiveWatch } from '@/lib/watches'
 import { getHebrewDate } from '@/lib/hebrew'
 import { supabase } from '@/lib/supabase'
 import { BOOK_NAMES, rotatingAnchorIndex } from '@/lib/axios-content'
+import { costByFeature, usd, type FixedCost, type ModelPrice, type UsageRow } from '@/lib/costs'
 
 export function Dashboard() {
   const { user, activeWatch, setActiveWatch, setHebrewDate, dailyVerses } = useAppStore()
@@ -87,6 +88,13 @@ export function Dashboard() {
         {user?.bible_study_enabled && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}>
             <StudyCard userId={user.id} />
+          </motion.div>
+        )}
+
+        {/* Count the Costs — admin only */}
+        {user?.is_admin && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.29 }}>
+            <CostsCard />
           </motion.div>
         )}
 
@@ -230,6 +238,48 @@ function StudyCard({ userId }: { userId: string }) {
           <p className="text-gold-600 font-heading text-3xs font-semibold uppercase tracking-widest mb-0.5">The Sovereign Study</p>
           <h3 className="text-hope-blue font-heading font-bold text-base leading-snug">My Bible Study</h3>
           <p className="text-hope-gray/50 text-xs mt-0.5">{next ? `Next: ${next}` : 'One page a day, no pressure'}</p>
+        </div>
+      </div>
+      <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gold-500 transition-colors shrink-0 ml-2" />
+    </button>
+  )
+}
+
+/** Admin-only Home card: AI spend over the last 30 days and fixed monthly costs. */
+function CostsCard() {
+  const navigate = useNavigate()
+  const [summary, setSummary] = useState<{ ai: number; fixed: number } | null>(null)
+
+  useEffect(() => {
+    const since = new Date(Date.now() - 30 * 86_400_000).toISOString()
+    Promise.all([
+      supabase.from('ai_usage').select('created_at, user_id, feature, model, input_tokens, output_tokens, thinking_tokens, ok').gte('created_at', since).limit(10000),
+      supabase.from('ai_model_prices').select('*'),
+      supabase.from('fixed_costs').select('*'),
+    ]).then(([u, p, f]) => {
+      const features = costByFeature((u.data as UsageRow[]) ?? [], (p.data as ModelPrice[]) ?? [], 0)
+      setSummary({
+        ai: features.reduce((s, x) => s + x.list, 0),
+        fixed: ((f.data as FixedCost[]) ?? []).reduce((s, x) => s + Number(x.monthly_usd || 0), 0),
+      })
+    })
+  }, [])
+
+  return (
+    <button
+      onClick={() => navigate('/admin/costs')}
+      className="w-full card flex items-center justify-between group text-left hover:shadow-md transition-all duration-200 active:scale-[0.99]"
+    >
+      <div className="flex items-center gap-4">
+        <div className="w-11 h-11 rounded-xl bg-hope-blue/10 flex items-center justify-center shrink-0">
+          <Calculator className="w-5 h-5 text-hope-blue" />
+        </div>
+        <div>
+          <p className="text-gold-600 font-heading text-3xs font-semibold uppercase tracking-widest mb-0.5">Only you can see this</p>
+          <h3 className="text-hope-blue font-heading font-bold text-base leading-snug">Count the Costs</h3>
+          <p className="text-hope-gray/50 text-xs mt-0.5">
+            {summary ? `AI, last 30 days: ${usd(summary.ai, 2)} · Fixed: ${usd(summary.fixed, 0)}/mo` : 'Loading…'}
+          </p>
         </div>
       </div>
       <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gold-500 transition-colors shrink-0 ml-2" />

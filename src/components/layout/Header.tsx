@@ -13,7 +13,7 @@ export function Header({ title }: HeaderProps) {
 
   return (
     <header className={cn(
-      'sticky top-0 z-40 bg-hope-blue text-white px-4 py-3',
+      'sticky top-0 z-40 bg-hope-blue text-white px-4 py-3 print:hidden',
       'flex items-center justify-between',
       'border-b border-gold-500/15',
     )}>
